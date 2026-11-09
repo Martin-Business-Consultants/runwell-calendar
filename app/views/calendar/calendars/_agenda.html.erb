@@ -1,18 +1,21 @@
 <%# locals: (period:, schedule:, day:, panel:) %>
 <%# Four weeks from a day as a list: each day with something on it, then what's on it, with who's
-    on each. Today leads with what's overdue. Each day takes drops like the grid's: a task dragged
+    on each. Today leads with what's overdue, closed until opened. Each day takes drops like the grid's: a task dragged
     onto it (from another day or the drawer) is due then, where it was let go, and dragging within
     a day rearranges it. A day with nothing on it isn't listed: drop on it in the month or week. %>
 <%# Weekends off leave weekend days out of the grid only: this list keeps every day with something on it. %>
 <% days = period.range.select { |date| schedule.on(date).any? } %>
 <div class="calendar-agenda">
   <% if period.includes_today? && schedule.overdue.any? %>
-    <section class="calendar-agenda__day calendar-agenda__day--overdue">
-      <h3 class="calendar-agenda__date">Overdue <span class="count"><%= schedule.overdue.size %></span></h3>
+    <details class="calendar-agenda__day calendar-agenda__day--overdue calendar-overdue">
+      <summary class="calendar-agenda__date calendar-overdue__summary">
+        <%= icon_tag "caret-down", class: "calendar-overdue__caret" %>
+        Overdue <span class="count"><%= schedule.overdue.size %></span>
+      </summary>
       <ul class="calendar-agenda__items">
         <%= render partial: "calendar/shared/task", collection: schedule.overdue, as: :task, locals: { with_due: true } %>
       </ul>
-    </section>
+    </details>
   <% end %>
   <% days.each do |date| %>
     <%# herb:key date.iso8601 %>

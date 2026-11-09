@@ -283,3 +283,11 @@ a.calendar-item__main:hover { background: var(--hover); }
 .calendar-undo__icon { color: var(--ok); }
 .calendar-undo__form { display: inline-flex; }
 .calendar-drawer__check { flex: none; }
+
+/* What's overdue, closed until opened (the day panel on today, the agenda's top). */
+.calendar-overdue__summary { display: flex; align-items: center; gap: var(--s-2); cursor: pointer; list-style: none; user-select: none; }
+.calendar-overdue__summary::-webkit-details-marker { display: none; }
+.calendar-overdue__caret { flex: none; width: .8rem; height: .8rem; transform: rotate(-90deg); transition: transform 120ms ease-out; }
+.calendar-overdue[open] .calendar-overdue__caret { transform: none; }
+.calendar-overdue[open] .calendar-overdue__summary { margin-bottom: var(--s-2); }
+@media (prefers-reduced-motion: reduce) { .calendar-overdue__caret { transition: none; } }

@@ -71,12 +71,16 @@
     </section>
 
     <% if date == Date.current && schedule.overdue.any? %>
-      <section class="calendar-panel__section">
-        <h4 class="calendar-panel__heading">Overdue <span class="count"><%= schedule.overdue.size %></span></h4>
+      <%# Closed until opened: what's overdue is there when wanted, not in the way of the day. %>
+      <details class="calendar-panel__section calendar-overdue">
+        <summary class="calendar-panel__heading calendar-overdue__summary">
+          <%= icon_tag "caret-down", class: "calendar-overdue__caret" %>
+          Overdue <span class="count"><%= schedule.overdue.size %></span>
+        </summary>
         <ul class="calendar-panel__list">
           <%= render partial: "calendar/shared/task", collection: schedule.overdue.first(20), as: :task, locals: { with_due: true } %>
         </ul>
-      </section>
+      </details>
     <% end %>
 
     <section class="calendar-panel__section">
