@@ -163,7 +163,7 @@ a.calendar-item__main:hover { background: var(--hover); }
 }
 .calendar-drawer__task:hover { background: var(--hover); }
 .calendar-drawer__task.drag-and-drop__dragged-item { opacity: .5; }
-.calendar-drawer__grip { flex: none; color: var(--text-faint); }
+.calendar-drawer__grip { flex: none; width: 1rem; height: 1rem; color: var(--text-muted); cursor: grab; }
 .calendar-drawer__main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .calendar-drawer__title { overflow: hidden; color: var(--text); font-weight: var(--weight-strong); text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .calendar-drawer__title:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -179,7 +179,8 @@ a.calendar-item__main:hover { background: var(--hover); }
 
 /* A task that drags shows a grip where other items have their mark, as the board's cards drag:
    the whole item moves. */
-.calendar-item__grip { flex: none; width: .75rem; height: .75rem; margin-inline: -1px; color: var(--text-faint); cursor: grab; }
+.calendar-item__grip { flex: none; width: 1rem; height: 1rem; margin-inline: -2px; color: var(--text-muted); cursor: grab; }
+.calendar-item--compact .calendar-item__grip { width: .9rem; height: .9rem; }
 .calendar-item--overdue .calendar-item__grip { color: var(--danger); }
-.calendar-item:hover .calendar-item__grip, .calendar-drawer__task:hover .calendar-drawer__grip { color: var(--text-muted); }
+.calendar-item:hover .calendar-item__grip, .calendar-drawer__task:hover .calendar-drawer__grip { color: var(--text); }
 .calendar-item[draggable="true"]:active, .calendar-drawer__task:active { cursor: grabbing; }

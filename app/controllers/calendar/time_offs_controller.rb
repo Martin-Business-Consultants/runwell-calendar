@@ -12,6 +12,10 @@ module Calendar
         "user_id: who (you by default; someone else only if you may manage time off). note: private to them and whoever manages time off.",
       params: { time_off: { user_id: "integer", starts_on: "date!", ends_on: "date", half_day: "boolean", note: "string" } },
       next_tools: %i[list_time_off list_calendar]
+    agent_tool :update_time_off, on: :update, title: "Change time off",
+      description: "Your own, or anyone's if you may manage time off: its days (starts_on, ends_on), half_day or note. Only what's given changes.",
+      params: { time_off: { starts_on: "date", ends_on: "date", half_day: "boolean", note: "string" } },
+      next_tools: %i[list_time_off list_calendar]
     agent_tool :remove_time_off, on: :destroy, title: "Remove time off",
       description: "Your own, or anyone's if you may manage time off."
 
@@ -45,6 +49,24 @@ module Calendar
       end
     end
 
+    def edit
+      @time_off = manageable_time_off or return
+      @page_title = "Change time off"
+    end
+
+    def update
+      @time_off = manageable_time_off or return
+      attributes = params.expect(time_off: %i[starts_on ends_on half_day note])
+      attributes[:ends_on] = attributes[:starts_on] if attributes.key?(:starts_on) && attributes[:ends_on].blank?
+      if @time_off.update(attributes)
+        redirect_to calendar_page_path(date: @time_off.starts_on.iso8601, day: @time_off.starts_on.iso8601),
+          notice: "#{@time_off.user.display_name}: out #{@time_off.span_text}#{" (half day)" if @time_off.half_day?}."
+      else
+        @page_title = "Change time off"
+        render :edit, status: :unprocessable_entity
+      end
+    end
+
     def destroy
       time_off = Calendar::TimeOff.find(params[:id])
       unless time_off.manageable_by?(Current.user)
@@ -56,6 +78,16 @@ module Calendar
     end
 
     private
+      # The time off on screen, if the person may change it (their own, or anyone's with
+      # manage_time_off); otherwise back where they came from, saying so.
+      def manageable_time_off
+        time_off = Calendar::TimeOff.find(params[:id])
+        return time_off if time_off.manageable_by?(Current.user)
+
+        redirect_back fallback_location: calendar_time_offs_path, alert: "You can change only your own time off."
+        nil
+      end
+
       def time_off_params
         attributes = params.expect(time_off: %i[user_id starts_on ends_on half_day note])
         attributes[:user_id] = find_person(attributes[:user_id])&.id if attributes[:user_id].present? && attributes[:user_id].to_s !~ /\A\d+\z/

@@ -1,16 +1,25 @@
 <%# locals: (time_off:, compact: nil) %>
-<%# Adding time off: who (yourself, or anyone if you may manage time off), from and to, a half day,
-    and a note only they and those who manage time off read. compact: inside the day panel. It
-    submits to the whole page, which opens on the first day out. %>
-<%= form_with model: time_off, url: calendar_time_offs_path, scope: :time_off, namespace: (compact ? "day_time_off" : "time_off"),
+<%# Adding or changing time off: who (yourself, or anyone if you may manage time off; fixed once it's
+    added), from and to, a half day, and a note only they and those who manage time off read.
+    compact: inside the day panel. It submits to the whole page, which opens on the first day out. %>
+<% saved = time_off.persisted? %>
+<%= form_with model: time_off, url: (saved ? calendar_time_off_path(time_off) : calendar_time_offs_path), method: (saved ? :patch : :post), scope: :time_off,
+      namespace: (compact ? "day_time_off" : "time_off"),
       class: class_names("calendar-time-off-form", "calendar-time-off-form--compact": compact), data: { turbo_frame: "_top" } do |form| %>
   <% if time_off.errors.any? %>
     <div class="alert alert--danger" role="alert"><%= time_off.errors.full_messages.to_sentence %>.</div>
   <% end %>
-  <label class="field">
-    <span class="field__label">Who</span>
-    <%= form.select :user_id, calendar_time_off_people, {}, aria: { label: "Who" } %>
-  </label>
+  <% if saved %>
+    <p class="field">
+      <span class="field__label">Who</span>
+      <span class="calendar-out"><%= person_tag time_off.user %> <span><%= time_off.user.display_name %></span></span>
+    </p>
+  <% else %>
+    <label class="field">
+      <span class="field__label">Who</span>
+      <%= form.select :user_id, calendar_time_off_people, {}, aria: { label: "Who" } %>
+    </label>
+  <% end %>
   <div class="field-row">
     <label class="field">
       <span class="field__label">From</span>
@@ -27,6 +36,9 @@
     <%= form.text_field :note, maxlength: 200, autocomplete: "off", placeholder: "Seen only by them and whoever manages time off" %>
   </label>
   <div class="button-row">
-    <button type="submit" class="btn btn--primary btn--sm">Add time off</button>
+    <button type="submit" class="btn btn--primary btn--sm"><%= saved ? "Save" : "Add time off" %></button>
+    <% if saved %>
+      <%= link_to "Cancel", calendar_page_path(date: time_off.starts_on.iso8601, day: time_off.starts_on.iso8601), class: "btn btn--ghost btn--sm", data: { keys: "esc" } %>
+    <% end %>
   </div>
 <% end %>

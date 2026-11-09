@@ -26,6 +26,9 @@
             <td class="muted"><%= off.note if off.note_visible_to?(Current.user) %></td>
             <td>
               <% if off.manageable_by?(Current.user) %>
+                <%= link_to edit_calendar_time_off_path(off), class: "icon-button", title: "Change this time off" do %>
+                  <%= icon_tag "pencil" %><span class="visually-hidden">Change <%= off.user.display_name %>’s time off</span>
+                <% end %>
                 <%= render "layouts/shared/delete_dialog", name: "#{off.user.display_name}’s time off (#{off.span_text})", path: calendar_time_off_path(off),
                       message: "They show as in again for those days." %>
               <% end %>

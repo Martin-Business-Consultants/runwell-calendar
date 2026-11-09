@@ -12,7 +12,7 @@ module Calendar
           get "days/:date", to: "days#show", as: :day, constraints: { date: /\d{4}-\d{2}-\d{2}/ }
           post "days/:date/drops/:task_id", to: "drops#create", as: :day_drop, constraints: { date: /\d{4}-\d{2}-\d{2}/ }
           post "drawer/drops/:task_id", to: "drops#destroy", as: :drawer_drop
-          resources :time_offs, path: "time-off", only: %i[index new create destroy]
+          resources :time_offs, path: "time-off", only: %i[index new create edit update destroy]
           resource :feed, path: "subscribe", only: %i[show create destroy]
           get "feed/:token", to: "subscriptions#show", as: :subscription, format: true, constraints: { format: "ics" }
         end

@@ -4,8 +4,9 @@ Who's out, what's due and every date that matters, on one calendar, for
 [Runwell](https://github.com/Martin-Business-Consultants/runwellv2).
 
 - **Tasks by their due date**: open, overdue (in red, and listed first on today) and done
-- **Time off**: who's away, whole days or half of one. Anyone adds their own; owners and managers
-  (the `manage_time_off` permission) add and remove anyone's. No approval: it says who's away. A
+- **Time off**: who's away, whole days or half of one. Anyone adds, changes and removes their own
+  (the pencil and trash beside it, on its day or in Time off); owners and managers (the
+  `manage_time_off` permission) do anyone's. No approval: it says who's away. A
   note is private to the person and whoever manages time off
 - **Dates**: every date custom field you may see (Settings > Fields), so a "Launch" date on a piece
   of work, or a "Renewal" on a client, shows on its day
@@ -53,7 +54,7 @@ months ahead. It's shown once; reset or turn it off on the same page.
 | `list_calendar` | Day by day over a range (`from`, `to`; up to 92 days), with the filters and search, clashes and overdue |
 | `show_calendar_day` | One day: who's out, what's due, dates, what closed, each person's load |
 | `list_time_off` | Who's out, soonest first |
-| `add_time_off` / `remove_time_off` | Your own, or anyone's with `manage_time_off` |
+| `add_time_off` / `update_time_off` / `remove_time_off` | Your own, or anyone's with `manage_time_off` |
 
 Ask "who's out next week?", "what's due while Marcus is away?" or "does anything launch when
 someone on it is out?". Calendar links are made only by their person, in the browser.
