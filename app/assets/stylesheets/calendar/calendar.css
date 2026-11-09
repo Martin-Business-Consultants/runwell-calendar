@@ -175,3 +175,4 @@ a.calendar-item__main:hover { background: var(--hover); }
 .calendar-drawer__owner { flex: none; }
 .calendar-panel__drop { display: flex; flex-direction: column; gap: var(--s-1); min-height: 2rem; padding: 2px; border-radius: calc(.5rem * var(--radius-scale, 1)); }
 .calendar-panel__drop.drag-and-drop__hover-container { background: var(--brand-tint); box-shadow: inset 0 0 0 2px var(--accent); }
+.calendar-agenda__day.drag-and-drop__hover-container { background: var(--brand-tint); box-shadow: inset 0 0 0 2px var(--accent); }

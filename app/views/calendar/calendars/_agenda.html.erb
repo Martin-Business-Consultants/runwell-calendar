@@ -1,6 +1,8 @@
 <%# locals: (period:, schedule:, day:, panel:) %>
 <%# Four weeks from a day as a list: each day with something on it, then what's on it, with who's
-    on each. Today leads with what's overdue. %>
+    on each. Today leads with what's overdue. Each day takes drops like the grid's: a task dragged
+    onto it (from another day or the drawer) is due then, where it was let go, and dragging within
+    a day rearranges it. A day with nothing on it isn't listed: drop on it in the month or week. %>
 <%# Weekends off leave weekend days out of the grid only: this list keeps every day with something on it. %>
 <% days = period.range.select { |date| schedule.on(date).any? } %>
 <div class="calendar-agenda">
@@ -14,12 +16,13 @@
   <% end %>
   <% days.each do |date| %>
     <%# herb:key date.iso8601 %>
-    <section class="<%= class_names("calendar-agenda__day", "calendar-agenda__day--today": date == Date.current, "calendar-agenda__day--selected": panel && date == day) %>" data-filter-target="item">
+    <section class="<%= class_names("calendar-agenda__day", "calendar-agenda__day--today": date == Date.current, "calendar-agenda__day--selected": panel && date == day) %>" data-filter-target="item"
+      data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
       <h3 class="calendar-agenda__date">
         <%= calendar_day_link_to calendar_day_title(date), date, panel: panel %>
         <% if date == Date.current %><span class="badge badge--ok">Today</span><% end %>
       </h3>
-      <ul class="calendar-agenda__items">
+      <ul class="calendar-agenda__items" data-drag-drop-item-container>
         <%= render partial: "calendar/shared/item", collection: schedule.on(date), as: :item, locals: { compact: false } %>
       </ul>
     </section>
