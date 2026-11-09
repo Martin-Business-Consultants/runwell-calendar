@@ -100,8 +100,9 @@ a.calendar-item__main:hover { background: var(--hover); }
 .calendar-time-off-form { gap: var(--s-3); }
 .calendar-time-off-form .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
 
-/* The filters: comboboxes and the search in one row. */
+/* The filters: comboboxes (the small kind, as wide as their choice) and the search, in one row. */
 .calendar-filters { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.calendar-filters .combobox { flex: none; width: auto; max-width: 14rem; }
 
 /* Weekends and the day panel, switched in the bar. */
 .calendar-toggle { display: inline-flex; align-items: center; gap: var(--s-1); text-decoration: none; }

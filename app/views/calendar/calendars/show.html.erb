@@ -11,10 +11,10 @@
       <%# herb:key name %>
       <input type="hidden" name="<%= name %>" value="<%= value %>">
     <% end %>
-    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, aria: { label: "Person" }, data: { action: "change->form#submit" } %>
-    <%= form.select :client, calendar_client_options, { selected: params[:client].presence || "all" }, aria: { label: term(:client) }, data: { action: "change->form#submit" } %>
-    <%= form.select :work, calendar_work_options, { selected: params[:work].presence || "all" }, aria: { label: term(:work) }, data: { action: "change->form#submit" } %>
-    <%= form.select :show, calendar_show_options, { selected: @schedule.show }, aria: { label: "Show" }, data: { action: "change->form#submit" } %>
+    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, class: "select--sm", aria: { label: "Person" }, data: { action: "change->form#submit" } %>
+    <%= form.select :client, calendar_client_options, { selected: params[:client].presence || "all" }, class: "select--sm", aria: { label: term(:client) }, data: { action: "change->form#submit" } %>
+    <%= form.select :work, calendar_work_options, { selected: params[:work].presence || "all" }, class: "select--sm", aria: { label: term(:work) }, data: { action: "change->form#submit" } %>
+    <%= form.select :show, calendar_show_options, { selected: @schedule.show }, class: "select--sm", aria: { label: "Show" }, data: { action: "change->form#submit" } %>
     <span class="calendar-search">
       <%= icon_tag "search", class: "calendar-search__icon" %>
       <input type="search" name="q" id="calendar_search" value="<%= params[:q] %>" class="calendar-search__input" placeholder="Search people, <%= term(:work).downcase %>, <%= term(:task, count: 2).downcase %>…"
