@@ -28,7 +28,7 @@ module Calendar
 
     config.to_prepare do
       Runwell::Plugins.register :calendar, name: "Calendar", version: Calendar::VERSION, author: "Martin Business Consultants",
-        enabled_by_default: false, requires: ">= 5.6.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-calendar",
+        enabled_by_default: false, requires: ">= 5.7.1", homepage: "https://github.com/Martin-Business-Consultants/runwell-calendar",
         description: "Who's out, what's due and every date that matters, on one calendar: tasks by due date, time off, launches and other date fields, and work closed, with the clashes (someone out when their task or launch lands). Filters, fuzzy search, a private feed for Google Calendar or Outlook, and tools for AI."
       Runwell::Plugins.nav :calendar, "Calendar", -> { calendar_page_path }, icon: "calendar"
       Runwell::Plugins.permission :calendar, :manage_time_off, name: "Add and remove anyone’s time off", roles: %w[owner manager]

@@ -2,7 +2,7 @@
 <%= parent_page "Calendar", calendar_page_path %>
 <% content_for :index_filters do %>
   <%= form_with url: calendar_time_offs_path, method: :get, class: "calendar-filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
-    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, class: "select--sm", aria: { label: "Person" }, data: { action: "change->form#submit" } %>
+    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, class: "select--sm", aria: { label: "Person" }, data: { action: "change->form#submit", combobox_filter: "always" } %>
   <% end %>
 <% end %>
 <%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path %>
