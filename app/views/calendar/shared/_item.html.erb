@@ -1,8 +1,9 @@
-<%# locals: (item:, compact: nil) %>
+<%# locals: (item:, compact: nil, avatars: nil) %>
 <%# One thing on a day (Calendar::Schedule::Item): a task (opens in the side panel; an open one drags
     to another day), someone out, a date field (a launch), another plugin's (a meeting) or a piece
     of work closed (each opens its record). compact: a month cell's one line; otherwise with who's
-    on it and where it sits. A clash marks it: someone on it is out. %>
+    on it and where it sits. avatars: who's on it even on one line (the week, which has the room). A
+    clash marks it: someone on it is out. %>
 <% draggable = item.task? && !item.done? %>
 <li class="<%= class_names("calendar-item", "calendar-item--#{item.kind.dasherize}", "calendar-item--overdue": item.overdue?, "calendar-item--done": item.done?,
       "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>"<% if draggable %> draggable="true" data-drag-and-drop-target="item" data-id="<%= item.record.id %>"<% end %>>
@@ -44,7 +45,7 @@
   <% if item.clash? %>
     <span class="calendar-item__clash" title="<%= calendar_clash_text(item.clash) %>"><%= icon_tag "bell-alert" %><span class="visually-hidden"><%= calendar_clash_text(item.clash) %></span></span>
   <% end %>
-  <% if !compact && item.people.any? && item.kind != "time_off" %>
+  <% if (!compact || avatars) && item.people.any? && item.kind != "time_off" %>
     <span class="calendar-item__people">
       <% item.people.first(3).each do |person| %>
         <%# herb:key person.id %>

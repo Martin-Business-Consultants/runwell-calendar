@@ -17,7 +17,7 @@
     <% end %>
   </div>
   <ul class="calendar-day__items" data-drag-drop-item-container>
-    <%= render partial: "calendar/shared/item", collection: shown, as: :item, locals: { compact: true } %>
+    <%= render partial: "calendar/shared/item", collection: shown, as: :item, locals: { compact: true, avatars: period.view == "week" } %>
   </ul>
   <% if items.size > shown.size %>
     <%= calendar_day_link_to "+#{items.size - shown.size} more", date, panel: panel, class: "calendar-day__more" %>
