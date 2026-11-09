@@ -13,7 +13,7 @@ module Calendar
     # or, with the panel closed, the page with it opened. Built here, in Ruby: a data hash worked out
     # in a template is written by Herb as a literal attribute.
     def calendar_day_link_to(content, date, panel:, **options)
-      return link_to(content, calendar_link(day: date.iso8601, panel: "on"), **options) unless panel
+      return link_to(content, calendar_link(day: date.iso8601, panel: Calendar::Preferences.on(:panel)), **options) unless panel
 
       link_to(content, calendar_link(day: date.iso8601), data: { turbo_frame: "calendar_day", turbo_action: "advance" }, **options)
     end

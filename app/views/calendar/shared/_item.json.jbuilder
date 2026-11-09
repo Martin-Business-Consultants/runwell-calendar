@@ -2,6 +2,7 @@ json.kind item.kind
 json.date item.date
 json.title item.title
 json.detail item.detail
+json.movable item.movable?
 case item.kind
 when "time_off"
   json.person calendar_person_json(item.record.user)
@@ -11,6 +12,7 @@ when "time_off"
     json.ends_on item.record.ends_on
     json.half_day item.record.half_day
     json.note item.record.note if item.record.note_visible_to?(Current.user)
+    json.state item.record.state
   end
 when "plugin"
   json.label item.detail

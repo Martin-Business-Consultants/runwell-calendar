@@ -45,14 +45,6 @@ module Calendar
         @filter_work = value.blank? || value == "all" ? nil : Work.find_by_ref!(value)
       end
 
-      # A way of seeing the calendar a person keeps (weekends shown, the day panel open): a param
-      # changes it (and stays in the link), a cookie remembers it for their next visit.
-      def preference(name, values)
-        cookie = :"calendar_#{name}"
-        cookies.permanent[cookie] = { value: params[name], same_site: :lax } if values.include?(params[name])
-        params[name].presence_in(values) || cookies[cookie].presence_in(values) || values.first
-      end
-
       def date_param(key, default = nil)
         Date.iso8601(params[key].to_s)
       rescue Date::Error

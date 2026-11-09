@@ -11,7 +11,7 @@ module Calendar
     def create
       task = Task.find(params[:task_id])
       date = date_param(:date) or raise ActiveRecord::RecordNotFound
-      if task.status != "done" && task.update(due_on: date)
+      if Calendar::TaskRules.movable?(task) && task.update(due_on: date)
         Calendar::Placement.place!(task, before: params[:before])
       end
 
@@ -23,7 +23,7 @@ module Calendar
 
     def destroy
       task = Task.find(params[:task_id])
-      task.update(due_on: nil) unless task.status == "done"
+      task.update(due_on: nil) if Calendar::TaskRules.movable?(task)
 
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.refresh(request_id: nil) }

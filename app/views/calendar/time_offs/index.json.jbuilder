@@ -6,6 +6,7 @@ json.time_off @time_offs do |off|
   json.ends_on off.ends_on
   json.half_day off.half_day
   json.label off.label
+  json.state off.state
   json.note off.note if off.note_visible_to?(Current.user)
   json.removable off.manageable_by?(Current.user)
 end

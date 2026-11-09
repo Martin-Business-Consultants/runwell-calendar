@@ -21,6 +21,25 @@ nothing of the core's beyond it) and its `AGENTS.md` (the conventions this code 
   controller that finds it by token, never an id
 - Filters are query params read in `Calendar::ApplicationController`, so every view is a link
 
+## State machines
+
+Each one's rules live once, on a model; views, controllers and the JSON ask it, never keep a copy
+(Runwell's own convention):
+
+- A task on the calendar: movable (open) or fixed (done), and overdue (open, due before today):
+  `Calendar::TaskRules.movable?` / `overdue?`, read by drops, the item and drawer partials, the
+  task notice and clashes; agents see `movable` on each item
+- An item's kind: `Calendar::Schedule::KINDS` (time_off, date, plugin, task, closed), in a day's
+  order, with a predicate each on `Item` (`time_off?`, `date?`…); compare those, not strings
+- How a person lays it out: `Calendar::Preferences` (weekends on/off, the day panel on/off, the
+  drawer open/closed; a param changes one and a cookie remembers it); toggles send `flipped(name)`
+- Time off: upcoming, current or past from its dates (`TimeOff#state`, shown to agents), and who
+  may change it (`manageable_by?`)
+- What the calendar shows (`Schedule::SHOWS`), the drawer's due filter (`Drawer::DUES`) and the
+  view (`Period::VIEWS`) are constants the filters and tools derive from
+- The feed (none, just made: its link shown once, on) and a task's placement are kept by
+  `Calendar::Feed` and `Calendar::Placement`
+
 ## Rules
 
 - Own tables only (`calendar_*`), core records by id, core rows written only through core verbs

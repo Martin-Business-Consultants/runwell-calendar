@@ -1,6 +1,6 @@
 items = @schedule.on(@date)
 out = @schedule.out_on(@date)
-due = items.select { it.task? && !it.done? }
+due = items.select(&:movable?)
 json.summary [
   "#{@date.strftime("%A, %B %-d")}: #{out.size} out, #{due.size} due",
   ("#{items.count(&:clash?)} clash" if items.any?(&:clash?)),
@@ -13,6 +13,7 @@ json.out out do |off|
   json.starts_on off.starts_on
   json.ends_on off.ends_on
   json.half_day off.half_day
+  json.state off.state
   json.note off.note if off.note_visible_to?(Current.user)
 end
 json.items items, partial: "calendar/shared/item", as: :item

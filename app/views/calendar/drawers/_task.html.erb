@@ -13,7 +13,7 @@
       <% end %>
     </span>
   </div>
-  <% if task.due_on && task.due_on < Date.current %>
+  <% if Calendar::TaskRules.overdue?(task) %>
     <span class="badge badge--danger">Overdue</span>
   <% end %>
   <span class="calendar-drawer__owner"><%= render "tasks/owner_picker", task: task %></span>

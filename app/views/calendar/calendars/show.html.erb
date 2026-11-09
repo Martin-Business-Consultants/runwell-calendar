@@ -28,7 +28,7 @@
 <% end %>
 <%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path(date: @day.iso8601) %>
 
-<div class="<%= class_names("calendar", "calendar--drawer-open": @drawer_open) %>" data-controller="drag-and-drop"
+<div class="<%= class_names("calendar", "calendar--drawer-open": @preferences.drawer?) %>" data-controller="drag-and-drop"
   data-drag-and-drop-dragged-item-class="drag-and-drop__dragged-item" data-drag-and-drop-hover-container-class="drag-and-drop__hover-container"
   data-action="dragstart->drag-and-drop#dragStart dragover->drag-and-drop#dragOver drop->drag-and-drop#drop dragend->drag-and-drop#dragEnd">
   <div class="calendar-bar">
@@ -49,19 +49,19 @@
           <%= link_to label, calendar_link(view: (view unless view == "month")), class: "tabs__tab", aria: { current: (view == @period.view ? "page" : nil) } %>
         <% end %>
       </nav>
-      <%= link_to calendar_link(weekends: (@weekends ? "off" : "on")), class: "pill calendar-toggle", aria: { pressed: @weekends },
-            title: (@weekends ? "Hide Saturdays and Sundays" : "Show Saturdays and Sundays") do %>
+      <%= link_to calendar_link(weekends: @preferences.flipped(:weekends)), class: "pill calendar-toggle", aria: { pressed: @preferences.weekends? },
+            title: (@preferences.weekends? ? "Hide Saturdays and Sundays" : "Show Saturdays and Sundays") do %>
         <span class="calendar-toggle__box" aria-hidden="true"><%= icon_tag "check" %></span>
         <span>Weekends</span>
       <% end %>
-      <%= link_to calendar_link(drawer: (@drawer_open ? "closed" : "open")), class: "pill calendar-toggle calendar-drawer-toggle", aria: { pressed: @drawer_open },
-            title: (@drawer_open ? "Hide the tasks drawer (r)" : "Tasks to put on a day (r)"), data: { keys: "r" } do %>
+      <%= link_to calendar_link(drawer: @preferences.flipped(:drawer)), class: "pill calendar-toggle calendar-drawer-toggle", aria: { pressed: @preferences.drawer? },
+            title: (@preferences.drawer? ? "Hide the tasks drawer (r)" : "Tasks to put on a day (r)"), data: { keys: "r" } do %>
         <%= icon_tag "board" %>
         <span><%= term(:task, count: 2) %></span>
       <% end %>
-      <%= link_to calendar_link(panel: (@panel ? "off" : "on")), class: "icon-button calendar-panel-toggle", aria: { pressed: @panel },
-            title: (@panel ? "Hide the day panel (])" : "Show the day panel (])"), data: { keys: "]" } do %>
-        <%= icon_tag "column-right" %><span class="visually-hidden"><%= @panel ? "Hide" : "Show" %> the day panel</span>
+      <%= link_to calendar_link(panel: @preferences.flipped(:panel)), class: "icon-button calendar-panel-toggle", aria: { pressed: @preferences.panel? },
+            title: (@preferences.panel? ? "Hide the day panel (])" : "Show the day panel (])"), data: { keys: "]" } do %>
+        <%= icon_tag "column-right" %><span class="visually-hidden"><%= @preferences.panel? ? "Hide" : "Show" %> the day panel</span>
       <% end %>
       <%= link_to calendar_time_offs_path, class: "btn btn--ghost btn--sm" do %>
         <%= icon_tag "person" %> <span>Time off</span>
@@ -72,15 +72,15 @@
     </div>
   </div>
 
-  <div class="<%= class_names("calendar-layout", "calendar-layout--wide": !@panel) %>">
+  <div class="<%= class_names("calendar-layout", "calendar-layout--wide": !@preferences.panel?) %>">
     <section class="calendar-main" aria-label="<%= @period.title %>">
       <% if @period.view == "agenda" %>
-        <%= render "calendar/calendars/agenda", period: @period, schedule: @schedule, day: @day, panel: @panel %>
+        <%= render "calendar/calendars/agenda", period: @period, schedule: @schedule, day: @day, panel: @preferences.panel? %>
       <% else %>
-        <%= render "calendar/calendars/grid", period: @period, schedule: @schedule, day: @day, panel: @panel %>
+        <%= render "calendar/calendars/grid", period: @period, schedule: @schedule, day: @day, panel: @preferences.panel? %>
       <% end %>
     </section>
-    <% if @panel %>
+    <% if @preferences.panel? %>
       <aside class="calendar-aside">
         <turbo-frame id="calendar_day">
           <%= render "calendar/days/day", schedule: @schedule, date: @day %>
@@ -89,7 +89,7 @@
     <% end %>
   </div>
 
-  <% if @drawer_open %>
+  <% if @preferences.drawer? %>
     <%= render "calendar/drawers/drawer", drawer: @drawer %>
   <% end %>
 </div>

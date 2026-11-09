@@ -5,10 +5,10 @@
     on it and where it sits. avatars: who's on it even on one line (the week, which has the room). A
     clash marks it: someone on it is out. An open task drags the way the Tasks board's cards do: the
     whole item is what moves (the grip shows it can), and its link is never dragged itself. %>
-<% draggable = item.task? && !item.done? %>
+<% draggable = item.movable? %>
 <li class="<%= class_names("calendar-item", "calendar-item--#{item.kind.dasherize}", "calendar-item--overdue": item.overdue?, "calendar-item--done": item.done?,
       "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>"<% if draggable %> draggable="true" data-drag-and-drop-target="item" data-id="<%= item.record.id %>"<% end %>>
-  <% if item.kind == "time_off" %>
+  <% if item.time_off? %>
     <span class="calendar-item__main">
       <%= person_tag item.record.user %>
       <span class="calendar-item__title"><%= item.record.user.display_name %></span>
@@ -26,7 +26,7 @@
         <span class="calendar-item__detail"><%= item.detail %></span>
       <% end %>
     <% end %>
-  <% elsif item.kind == "plugin" %>
+  <% elsif item.plugin? %>
     <% if item.record.path %>
       <%= link_to item.record.path, class: "calendar-item__main", data: { turbo_frame: "_top" } do %>
         <span class="calendar-item__mark" aria-hidden="true"></span>
@@ -50,7 +50,7 @@
   <% if item.clash? %>
     <span class="calendar-item__clash" title="<%= calendar_clash_text(item.clash) %>"><%= icon_tag "bell-alert" %><span class="visually-hidden"><%= calendar_clash_text(item.clash) %></span></span>
   <% end %>
-  <% if (!compact || avatars) && item.people.any? && item.kind != "time_off" %>
+  <% if (!compact || avatars) && item.people.any? && !item.time_off? %>
     <span class="calendar-item__people">
       <% item.people.first(3).each do |person| %>
         <%# herb:key person.id %>

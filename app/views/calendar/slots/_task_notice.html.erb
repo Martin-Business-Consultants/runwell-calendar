@@ -1,7 +1,7 @@
 <%# locals: (task:) %>
 <%# Under a task's title, on its page and in the side panel: who on it is out on the day it's due,
     so a due date or an assignment that lands on someone's time off shows where it's set. %>
-<% offs = task.due_on && task.status != "done" ? Calendar::TimeOff.overlapping(task.due_on..task.due_on).where(user_id: task.owners.map(&:id)).includes(:user).to_a : [] %>
+<% offs = task.due_on && Calendar::TaskRules.movable?(task) ? Calendar::TimeOff.overlapping(task.due_on..task.due_on).where(user_id: task.owners.map(&:id)).includes(:user).to_a : [] %>
 <% if offs.any? %>
   <p class="calendar-notice" role="note">
     <%= icon_tag "bell-alert", class: "calendar-notice__icon" %>

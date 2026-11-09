@@ -22,6 +22,9 @@
               <%= link_to calendar_page_path(date: off.starts_on.iso8601, day: off.starts_on.iso8601) do %>
                 <%= off.span_text %><% if off.half_day? %> · half day<% end %>
               <% end %>
+              <% if off.state == "current" %>
+                <%= badge off.state_label, tone: :ok %>
+              <% end %>
             </td>
             <td class="muted"><%= off.note if off.note_visible_to?(Current.user) %></td>
             <td>

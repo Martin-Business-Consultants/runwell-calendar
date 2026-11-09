@@ -26,6 +26,19 @@ module Calendar
     def days = starts_on..ends_on
     def covers?(date) = days.cover?(date)
 
+    # Where it stands today, from its dates: upcoming, current (out now) or past.
+    STATES = { "upcoming" => "Upcoming", "current" => "Out now", "past" => "Past" }.freeze
+
+    def state
+      if covers?(Date.current) then "current"
+      elsif starts_on > Date.current then "upcoming"
+      else "past"
+      end
+    end
+
+    def state_label = STATES.fetch(state)
+    def past? = state == "past"
+
     # "Out" or "Out (half day)", as the calendar says it.
     def label = half_day? ? "Out (half day)" : "Out"
 

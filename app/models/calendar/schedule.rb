@@ -13,15 +13,20 @@ module Calendar
   class Schedule
     SHOWS = { "all" => "Everything", "open" => "Open tasks", "overdue" => "Overdue", "done" => "Done tasks",
       "time_off" => "Time off", "dates" => "Dates", "closed" => "Closed work" }.freeze
-    KIND_ORDER = %w[time_off date plugin task closed].freeze
+    # What can be on a day, in the order a day lists them.
+    KINDS = %w[time_off date plugin task closed].freeze
+    KIND_ORDER = KINDS
 
     # One thing on a day. kind: task, time_off, date, plugin (another plugin's, its record a
     # Runwell::Plugins::Dated) or closed. people: who it's about (a task's
-    # owners, lead first; the person out). clash: who's on it but out that day.
+    # owners, lead first; the person out). clash: who's on it but out that day. movable: a task
+    # that can be dragged to another day (Calendar::TaskRules).
     Item = Data.define(:kind, :date, :title, :record, :people, :detail, :status, :clash) do
-      def task? = kind == "task"
-      def done? = task? && status == "done"
-      def overdue? = task? && !done? && date < Date.current
+      KINDS.each { |name| define_method(:"#{name}?") { kind == name } }
+
+      def done? = task? && !Calendar::TaskRules.movable?(record)
+      def movable? = task? && Calendar::TaskRules.movable?(record)
+      def overdue? = task? && Calendar::TaskRules.overdue?(record)
       def clash? = clash.any?
     end
 
@@ -81,7 +86,7 @@ module Calendar
           owners = task.owners
           Item.new(kind: "task", date: task.due_on, title: task.title, record: task, people: owners,
             detail: task.work&.title || task.client&.name, status: task.status,
-            clash: task.status == "done" ? [] : owners.select { out?(it, task.due_on) })
+            clash: Calendar::TaskRules.movable?(task) ? owners.select { out?(it, task.due_on) } : [])
         end
       end
 

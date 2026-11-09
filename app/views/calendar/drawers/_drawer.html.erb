@@ -11,7 +11,7 @@
       <span class="count"><%= drawer.total %></span>
     </h2>
     <p class="calendar-drawer__hint muted small">Drag one onto a day to set its date, or a day’s back here to clear it.</p>
-    <%= link_to calendar_link(drawer: "closed"), class: "icon-button", title: "Hide (r)" do %>
+    <%= link_to calendar_link(drawer: Calendar::Preferences.off(:drawer)), class: "icon-button", title: "Hide (r)" do %>
       <%= icon_tag "close" %><span class="visually-hidden">Hide the <%= term(:task, count: 2).downcase %></span>
     <% end %>
   </header>

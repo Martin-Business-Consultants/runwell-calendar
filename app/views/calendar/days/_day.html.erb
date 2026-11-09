@@ -3,10 +3,10 @@
     closed, and how many open tasks each person has due, then a way to add time off on it. %>
 <% items = schedule.on(date) %>
 <% out = schedule.out_on(date) %>
-<% due = items.select { |item| item.task? && !item.done? } %>
+<% due = items.select(&:movable?) %>
 <% done = items.select(&:done?) %>
-<% dates = items.select { |item| item.kind == "date" } %>
-<% closed = items.select { |item| item.kind == "closed" } %>
+<% dates = items.select(&:date?) %>
+<% closed = items.select(&:closed?) %>
 <% load = schedule.load_on(date) %>
 <section class="card calendar-panel" aria-label="<%= calendar_day_title(date) %>">
   <header class="card__head">
