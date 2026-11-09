@@ -1,0 +1,19 @@
+<%# locals: (task:) %>
+<%# A task in the drawer: dragged by any of it onto a day; its title opens it in the side panel, and
+    its owners change in place (the core's owner picker). %>
+<li class="calendar-drawer__task" draggable="true" data-drag-and-drop-target="item" data-id="<%= task.id %>">
+  <%= icon_tag "move", class: "calendar-drawer__grip" %>
+  <div class="calendar-drawer__main">
+    <%= side_panel_link_to task, task.title, class: "calendar-drawer__title" %>
+    <span class="calendar-drawer__detail">
+      <%= [ task.work&.title, task.client&.name ].compact.uniq.join(" · ") %>
+      <% if task.due_on %>
+        · due <%= l(task.due_on, format: "%b %-d") %>
+      <% end %>
+    </span>
+  </div>
+  <% if task.due_on && task.due_on < Date.current %>
+    <span class="badge badge--danger">Overdue</span>
+  <% end %>
+  <span class="calendar-drawer__owner"><%= render "tasks/owner_picker", task: task %></span>
+</li>

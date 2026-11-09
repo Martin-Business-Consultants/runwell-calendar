@@ -20,6 +20,8 @@ module Calendar
         format.html do
           @weekends = preference(:weekends, %w[on off]) == "on"
           @panel = preference(:panel, %w[on off]) == "on"
+          @drawer_open = preference(:drawer, %w[closed open]) == "open"
+          @drawer = drawer if @drawer_open
           @period = Calendar::Period.new(view: params[:view], date: date_param(:date), weekends: @weekends)
           @day = date_param(:day) || (@period.includes_today? ? Date.current : @period.range.first)
           @schedule = schedule_for(@period.range.cover?(@day) ? @period.range : [ @period.range.first, @day ].min..[ @period.range.last, @day ].max)
@@ -33,5 +35,18 @@ module Calendar
         end
       end
     end
+
+    private
+      # The tasks drawer, from its own params (tasks_*), apart from the calendar's filters.
+      def drawer
+        owner = case params[:tasks_owner].to_s
+        when "", "anyone" then nil
+        when "none" then :nobody
+        else find_person(params[:tasks_owner])
+        end
+        client = params[:tasks_client].presence_in([ nil, "all" ]) ? nil : Client.find_by(id: params[:tasks_client])
+        work = params[:tasks_work].presence_in([ nil, "all" ]) ? nil : Work.find_by(ref: params[:tasks_work])
+        Calendar::Drawer.new(due: params[:tasks_due], owner: owner, client: client, work: work, query: params[:tasks_q])
+      end
   end
 end

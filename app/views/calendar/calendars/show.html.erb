@@ -2,12 +2,13 @@
     the day picked open beside it. The filters are one GET form of comboboxes (the core's, with a
     filter box past a handful of choices) and the search, sent as each changes, so a filtered
     calendar is a link; the search box is permanent across visits (data-turbo-permanent), so typing
-    keeps focus while the page refreshes under it. Weekends and the day panel are switched in the
+    keeps focus while the page refreshes under it. Weekends, the day panel and the tasks drawer
+    (open tasks to drag onto a day, with filters of their own, tasks_* params) are switched in the
     bar and remembered. Picking a day loads only its panel (the calendar_day frame), or, with the
     panel closed, opens it. %>
 <% content_for :index_filters do %>
   <%= form_with url: calendar_page_path, method: :get, class: "calendar-filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
-    <% request.query_parameters.slice("view", "date", "day").each do |name, value| %>
+    <% request.query_parameters.select { |name, value| value.is_a?(String) && (name.in?(%w[view date day]) || name.start_with?("tasks_")) }.each do |name, value| %>
       <%# herb:key name %>
       <input type="hidden" name="<%= name %>" value="<%= value %>">
     <% end %>
@@ -27,7 +28,9 @@
 <% end %>
 <%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path(date: @day.iso8601) %>
 
-<div class="calendar">
+<div class="<%= class_names("calendar", "calendar--drawer-open": @drawer_open) %>" data-controller="drag-and-drop"
+  data-drag-and-drop-dragged-item-class="drag-and-drop__dragged-item" data-drag-and-drop-hover-container-class="drag-and-drop__hover-container"
+  data-action="dragstart->drag-and-drop#dragStart dragover->drag-and-drop#dragOver drop->drag-and-drop#drop dragend->drag-and-drop#dragEnd">
   <div class="calendar-bar">
     <div class="calendar-bar__nav">
       <%= link_to calendar_link(date: @period.previous.iso8601, day: nil), class: "icon-button", title: "Previous (h)", data: { keys: "h" } do %>
@@ -50,6 +53,11 @@
             title: (@weekends ? "Hide Saturdays and Sundays" : "Show Saturdays and Sundays") do %>
         <span class="calendar-toggle__box" aria-hidden="true"><%= icon_tag "check" %></span>
         <span>Weekends</span>
+      <% end %>
+      <%= link_to calendar_link(drawer: (@drawer_open ? "closed" : "open")), class: "pill calendar-toggle calendar-drawer-toggle", aria: { pressed: @drawer_open },
+            title: (@drawer_open ? "Hide the tasks drawer (r)" : "Tasks to put on a day (r)"), data: { keys: "r" } do %>
+        <%= icon_tag "board" %>
+        <span><%= term(:task, count: 2) %></span>
       <% end %>
       <%= link_to calendar_link(panel: (@panel ? "off" : "on")), class: "icon-button calendar-panel-toggle", aria: { pressed: @panel },
             title: (@panel ? "Hide the day panel (])" : "Show the day panel (])"), data: { keys: "]" } do %>
@@ -80,4 +88,8 @@
       </aside>
     <% end %>
   </div>
+
+  <% if @drawer_open %>
+    <%= render "calendar/drawers/drawer", drawer: @drawer %>
+  <% end %>
 </div>

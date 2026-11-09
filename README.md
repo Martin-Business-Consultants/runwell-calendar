@@ -22,6 +22,12 @@ each person has due, and Add time off for that day. Hide the panel (`]`) for a w
 switch Weekends off for a five-day grid (a Friday then says what's on the weekend); both are
 remembered. Drag an open task to another day to move its due date.
 
+**Tasks** in the bar (or `r`) opens a drawer along the bottom: on the left its own search and
+filters (due: no date, the default, overdue, the next two weeks or any; who's on it, including
+nobody yet; client; work), on the right the open tasks they find. Drag one onto a day to set its
+date, or a day's task back into the drawer to clear it; change who's on it in place, and click its
+title to open it in the side panel.
+
 A task due on a day someone on it is out says so under its title, on its page and in the side
 panel. In the client portal, home shows what's coming up for the client in the next three months
 from the date fields shown to clients (a launch).
@@ -32,7 +38,7 @@ work, tasks and people (it forgives typos and partial words: "wbsite" finds Webs
 Every filter is in the address, so a filtered calendar is a link to bookmark or share.
 
 Keys: `h` and `l` for the previous and next month (week, four weeks), `t` for today, `]` for the
-day panel, `j` / `k` through the days and Enter to open one.
+day panel, `r` for the tasks drawer, `j` / `k` through the days and Enter to open one.
 
 **Subscribe** gives you a private link for Google Calendar, Outlook or Apple's Calendar: your open
 tasks with a due date, everyone's time off and every date you may see, from a month back to six

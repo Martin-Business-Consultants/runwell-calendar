@@ -32,6 +32,13 @@ module Calendar
 
     def calendar_show_options = Calendar::Schedule::SHOWS.map { |value, text| [ text, value ] }
 
+    # The tasks drawer's choices: when they're due, and who's on them (nobody: not taken on yet).
+    def calendar_drawer_due_options = Calendar::Drawer::DUES.map { |value, text| [ text, value ] }
+
+    def calendar_drawer_owner_options
+      [ [ "Anyone", "anyone" ], [ "Me", "me" ], [ "Nobody yet", "none" ] ] + User.people.active.ordered.map { [ it.display_name, it.id.to_s ] }
+    end
+
     # Who can be given time off by the person on screen: themselves, or anyone if they may manage it.
     def calendar_time_off_people
       can?(:manage_time_off) ? User.people.active.ordered.map { [ it.display_name, it.id ] } : [ [ Current.user.person.display_name, Current.user.person.id ] ]

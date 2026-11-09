@@ -1,0 +1,62 @@
+<%# locals: (drawer:) %>
+<%# The tasks drawer, along the bottom of the calendar: on the left its own search and filters
+    (tasks_* params, sent as each changes, the calendar's own riding along); on the right the open
+    tasks they find (Calendar::Drawer), each dragged onto a day to be due then, its owners changed in
+    place (the core's owner picker) and its title opening it in the side panel. A task dragged from a
+    day into the list has no date again. %>
+<section class="calendar-drawer" aria-label="<%= term(:task, count: 2) %> to put on a day">
+  <header class="calendar-drawer__head">
+    <h2 class="calendar-drawer__title-text">
+      <%= term(:task, count: 2) %>
+      <span class="count"><%= drawer.total %></span>
+    </h2>
+    <p class="calendar-drawer__hint muted small">Drag one onto a day to set its date, or a day’s back here to clear it.</p>
+    <%= link_to calendar_link(drawer: "closed"), class: "icon-button", title: "Hide (r)" do %>
+      <%= icon_tag "close" %><span class="visually-hidden">Hide the <%= term(:task, count: 2).downcase %></span>
+    <% end %>
+  </header>
+
+  <div class="calendar-drawer__body">
+    <%= form_with url: calendar_page_path, method: :get, class: "calendar-drawer__filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
+      <% request.query_parameters.reject { |name, value| name.start_with?("tasks_") || !value.is_a?(String) }.each do |name, value| %>
+        <%# herb:key name %>
+        <input type="hidden" name="<%= name %>" value="<%= value %>">
+      <% end %>
+      <span class="calendar-search calendar-drawer__search">
+        <%= icon_tag "search", class: "calendar-search__icon" %>
+        <input type="search" name="tasks_q" id="calendar_drawer_search" value="<%= params[:tasks_q] %>" class="calendar-search__input" placeholder="Search <%= term(:task, count: 2).downcase %>…"
+          autocomplete="off" aria-label="Search the <%= term(:task, count: 2).downcase %>" data-turbo-permanent data-1p-ignore="true" data-action="input->form#debouncedSubmit">
+      </span>
+      <label class="field">
+        <span class="field__label">Due</span>
+        <%= form.select :tasks_due, calendar_drawer_due_options, { selected: drawer.due }, aria: { label: "Due" }, data: { action: "change->form#submit" } %>
+      </label>
+      <label class="field">
+        <span class="field__label">Who’s on it</span>
+        <%= form.select :tasks_owner, calendar_drawer_owner_options, { selected: params[:tasks_owner].presence || "anyone" }, aria: { label: "Who’s on it" }, data: { action: "change->form#submit" } %>
+      </label>
+      <label class="field">
+        <span class="field__label"><%= term(:client) %></span>
+        <%= form.select :tasks_client, calendar_client_options, { selected: params[:tasks_client].presence || "all" }, aria: { label: term(:client) }, data: { action: "change->form#submit" } %>
+      </label>
+      <label class="field">
+        <span class="field__label"><%= term(:work) %></span>
+        <%= form.select :tasks_work, calendar_work_options, { selected: params[:tasks_work].presence || "all" }, aria: { label: term(:work) }, data: { action: "change->form#submit" } %>
+      </label>
+    <% end %>
+
+    <div class="calendar-drawer__list" data-drag-and-drop-target="container" data-drag-and-drop-url="<%= calendar_drawer_drop_path(task_id: "__id__") %>">
+      <% if drawer.tasks.any? %>
+        <ul class="calendar-drawer__tasks" data-drag-drop-item-container>
+          <%= render partial: "calendar/drawers/task", collection: drawer.tasks, as: :task %>
+        </ul>
+        <% if drawer.more? %>
+          <p class="muted small calendar-drawer__more">The first <%= drawer.tasks.size %> of <%= drawer.total %>. Search or filter to find the rest.</p>
+        <% end %>
+      <% else %>
+        <ul class="calendar-drawer__tasks" data-drag-drop-item-container></ul>
+        <p class="muted calendar-drawer__empty">No open <%= term(:task, count: 2).downcase %> here<%= drawer.due == "none" ? " without a date" : "" %>.</p>
+      <% end %>
+    </div>
+  </div>
+</section>
