@@ -1,7 +1,8 @@
 module Calendar
   # Everything dated in a range of days, as the calendar shows it: tasks by their due date (open,
   # overdue or done), who's out, every date field the viewer may see (a work's launch, a client's
-  # renewal: CustomField.dates_between), and work closed (completed or cancelled). Narrowed by
+  # renewal: CustomField.dates_between), other plugins' dated things (a meeting:
+  # Runwell::Plugins.dates_between) and work closed (completed or cancelled). Narrowed by
   # person, client, work and what to show, and by a search (the core's fuzzy Search: a client,
   # work, task or person, with typos and partial words), all of it from the page's query params,
   # so the page and the list_calendar tool read the same.
@@ -12,9 +13,10 @@ module Calendar
   class Schedule
     SHOWS = { "all" => "Everything", "open" => "Open tasks", "overdue" => "Overdue", "done" => "Done tasks",
       "time_off" => "Time off", "dates" => "Dates", "closed" => "Closed work" }.freeze
-    KIND_ORDER = %w[time_off date task closed].freeze
+    KIND_ORDER = %w[time_off date plugin task closed].freeze
 
-    # One thing on a day. kind: task, time_off, date or closed. people: who it's about (a task's
+    # One thing on a day. kind: task, time_off, date, plugin (another plugin's, its record a
+    # Runwell::Plugins::Dated) or closed. people: who it's about (a task's
     # owners, lead first; the person out). clash: who's on it but out that day.
     Item = Data.define(:kind, :date, :title, :record, :people, :detail, :status, :clash) do
       def task? = kind == "task"
@@ -34,7 +36,7 @@ module Calendar
     def filtered? = person || client || work || show != "all" || query
 
     def items
-      @items ||= (task_items + time_off_items + date_items + closed_items)
+      @items ||= (task_items + time_off_items + date_items + plugin_items + closed_items)
         .sort_by { [ it.date, KIND_ORDER.index(it.kind), it.done? ? 1 : 0, it.title.downcase ] }
     end
 
@@ -116,6 +118,21 @@ module Calendar
           on_it = people_on(record)
           Item.new(kind: "date", date: date, title: record_title(record), record: record, people: on_it,
             detail: field.label, status: nil, clash: record.is_a?(Client) ? [] : on_it.select { out?(it, date) })
+        end
+      end
+
+      # Other plugins' dated things. They name no client or work, so a client or work filter leaves
+      # them out; a person filter keeps those about them, and a search those whose title or people match.
+      def plugin_items
+        return [] unless shows?("dates") && !client && !work
+
+        Runwell::Plugins.dates_between(range, viewer: viewer).filter_map do |dated|
+          people = Array(dated.people)
+          next if person && people.none? { it.id == person.id }
+          next if query && !dated.title.to_s.downcase.include?(query.downcase) && people.none? { |someone| matches[:people].any? { it.id == someone.id } }
+
+          Item.new(kind: "plugin", date: dated.date, title: dated.title, record: dated, people: people,
+            detail: dated.label, status: nil, clash: people.select { out?(it, dated.date) })
         end
       end
 

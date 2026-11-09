@@ -12,6 +12,11 @@ when "time_off"
     json.half_day item.record.half_day
     json.note item.record.note if item.record.note_visible_to?(Current.user)
   end
+when "plugin"
+  json.label item.detail
+  json.path item.record.path if item.record.path
+  json.plugin item.record.plugin
+  json.people item.people.map { calendar_person_json(it) }
 when "task"
   json.status item.status
   json.overdue item.overdue?

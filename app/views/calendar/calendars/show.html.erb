@@ -1,22 +1,26 @@
 <%# The calendar (Calendar::CalendarsController): filters and search over a month, week or agenda,
-    the day picked open beside it. Every choice is a query param, so a filtered calendar is a link;
-    picking a day loads only its panel (the calendar_day frame) and advances the address. The search
-    box is permanent across visits (data-turbo-permanent), so typing keeps focus while the page
-    refreshes under it. %>
+    the day picked open beside it. The filters are one GET form of comboboxes (the core's, with a
+    filter box past a handful of choices) and the search, sent as each changes, so a filtered
+    calendar is a link; the search box is permanent across visits (data-turbo-permanent), so typing
+    keeps focus while the page refreshes under it. Weekends and the day panel are switched in the
+    bar and remembered. Picking a day loads only its panel (the calendar_day frame), or, with the
+    panel closed, opens it. %>
 <% content_for :index_filters do %>
-  <%= render "layouts/shared/quick_filter", title: "Person", param: :person, options: calendar_person_options, current: params[:person].presence || "anyone" %>
-  <%= render "layouts/shared/quick_filter", title: term(:client), param: :client, options: calendar_client_options, current: params[:client].presence || "all" %>
-  <%= render "layouts/shared/quick_filter", title: term(:work), param: :work, options: calendar_work_options, current: params[:work].presence || "all" %>
-  <%= render "layouts/shared/quick_filter", title: "Show", param: :show, options: calendar_show_options, current: @schedule.show %>
-  <form action="<%= calendar_page_path %>" method="get" class="calendar-search" role="search" data-controller="form" data-turbo-action="replace">
-    <% request.query_parameters.except("q", "day").each do |name, value| %>
+  <%= form_with url: calendar_page_path, method: :get, class: "calendar-filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
+    <% request.query_parameters.slice("view", "date", "day").each do |name, value| %>
       <%# herb:key name %>
       <input type="hidden" name="<%= name %>" value="<%= value %>">
     <% end %>
-    <%= icon_tag "search", class: "calendar-search__icon" %>
-    <input type="search" name="q" id="calendar_search" value="<%= params[:q] %>" class="calendar-search__input" placeholder="Search people, <%= term(:work).downcase %>, <%= term(:task, count: 2).downcase %>…"
-      autocomplete="off" aria-label="Search the calendar" data-turbo-permanent data-1p-ignore="true" data-action="input->form#debouncedSubmit">
-  </form>
+    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, aria: { label: "Person" }, data: { action: "change->form#submit" } %>
+    <%= form.select :client, calendar_client_options, { selected: params[:client].presence || "all" }, aria: { label: term(:client) }, data: { action: "change->form#submit" } %>
+    <%= form.select :work, calendar_work_options, { selected: params[:work].presence || "all" }, aria: { label: term(:work) }, data: { action: "change->form#submit" } %>
+    <%= form.select :show, calendar_show_options, { selected: @schedule.show }, aria: { label: "Show" }, data: { action: "change->form#submit" } %>
+    <span class="calendar-search">
+      <%= icon_tag "search", class: "calendar-search__icon" %>
+      <input type="search" name="q" id="calendar_search" value="<%= params[:q] %>" class="calendar-search__input" placeholder="Search people, <%= term(:work).downcase %>, <%= term(:task, count: 2).downcase %>…"
+        autocomplete="off" aria-label="Search the calendar" data-turbo-permanent data-1p-ignore="true" data-action="input->form#debouncedSubmit">
+    </span>
+  <% end %>
   <% if @schedule.filtered? %>
     <%= link_to "Clear", calendar_page_path(params.permit(:view, :date).to_h), class: "btn btn--ghost btn--sm" %>
   <% end %>
@@ -42,6 +46,15 @@
           <%= link_to label, calendar_link(view: (view unless view == "month")), class: "tabs__tab", aria: { current: (view == @period.view ? "page" : nil) } %>
         <% end %>
       </nav>
+      <%= link_to calendar_link(weekends: (@weekends ? "off" : "on")), class: "pill calendar-toggle", aria: { pressed: @weekends },
+            title: (@weekends ? "Hide Saturdays and Sundays" : "Show Saturdays and Sundays") do %>
+        <span class="calendar-toggle__box" aria-hidden="true"><%= icon_tag "check" %></span>
+        <span>Weekends</span>
+      <% end %>
+      <%= link_to calendar_link(panel: (@panel ? "off" : "on")), class: "icon-button calendar-panel-toggle", aria: { pressed: @panel },
+            title: (@panel ? "Hide the day panel (])" : "Show the day panel (])"), data: { keys: "]" } do %>
+        <%= icon_tag "column-right" %><span class="visually-hidden"><%= @panel ? "Hide" : "Show" %> the day panel</span>
+      <% end %>
       <%= link_to calendar_time_offs_path, class: "btn btn--ghost btn--sm" do %>
         <%= icon_tag "person" %> <span>Time off</span>
       <% end %>
@@ -51,18 +64,20 @@
     </div>
   </div>
 
-  <div class="calendar-layout">
+  <div class="<%= class_names("calendar-layout", "calendar-layout--wide": !@panel) %>">
     <section class="calendar-main" aria-label="<%= @period.title %>">
       <% if @period.view == "agenda" %>
-        <%= render "calendar/calendars/agenda", period: @period, schedule: @schedule, day: @day %>
+        <%= render "calendar/calendars/agenda", period: @period, schedule: @schedule, day: @day, panel: @panel %>
       <% else %>
-        <%= render "calendar/calendars/grid", period: @period, schedule: @schedule, day: @day %>
+        <%= render "calendar/calendars/grid", period: @period, schedule: @schedule, day: @day, panel: @panel %>
       <% end %>
     </section>
-    <aside class="calendar-aside">
-      <turbo-frame id="calendar_day">
-        <%= render "calendar/days/day", schedule: @schedule, date: @day %>
-      </turbo-frame>
-    </aside>
+    <% if @panel %>
+      <aside class="calendar-aside">
+        <turbo-frame id="calendar_day">
+          <%= render "calendar/days/day", schedule: @schedule, date: @day %>
+        </turbo-frame>
+      </aside>
+    <% end %>
   </div>
 </div>

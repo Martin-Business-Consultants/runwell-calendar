@@ -9,6 +9,15 @@ module Calendar
       calendar_page_path(request.query_parameters.merge(changes.transform_keys(&:to_s)).reject { |_, value| value.blank? })
     end
 
+    # A link that opens a day: in the panel beside the calendar (its frame, advancing the address),
+    # or, with the panel closed, the page with it opened. Built here, in Ruby: a data hash worked out
+    # in a template is written by Herb as a literal attribute.
+    def calendar_day_link_to(content, date, panel:, **options)
+      return link_to(content, calendar_link(day: date.iso8601, panel: "on"), **options) unless panel
+
+      link_to(content, calendar_link(day: date.iso8601), data: { turbo_frame: "calendar_day", turbo_action: "advance" }, **options)
+    end
+
     def calendar_person_options
       [ [ "Anyone", "anyone" ], [ "Me", "me" ] ] + User.people.active.ordered.map { [ it.display_name, it.id.to_s ] }
     end

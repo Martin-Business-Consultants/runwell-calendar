@@ -9,6 +9,7 @@ Who's out, what's due and every date that matters, on one calendar, for
   note is private to the person and whoever manages time off
 - **Dates**: every date custom field you may see (Settings > Fields), so a "Launch" date on a piece
   of work, or a "Renewal" on a client, shows on its day
+- **Other plugins' dates**: anything a plugin offers calendars (`Runwell::Plugins.dates`)
 - **Work closed**, as completed or cancelled
 - **Clashes**: a task due, or a date on a piece of work (a launch), while someone on it is out, is
   flagged on the day and on the item
@@ -17,15 +18,21 @@ Who's out, what's due and every date that matters, on one calendar, for
 
 Calendar in the nav opens the month; switch to a week or a four-week agenda. Pick a day for its
 panel: who's out, what's due (and overdue, on today), its dates, what closed, how many open tasks
-each person has due, and Add time off for that day.
+each person has due, and Add time off for that day. Hide the panel (`]`) for a wider calendar, and
+switch Weekends off for a five-day grid (a Friday then says what's on the weekend); both are
+remembered. Drag an open task to another day to move its due date.
 
-Filter by person (anyone, me, or someone), client, work and what to show (everything, open tasks,
+A task due on a day someone on it is out says so under its title, on its page and in the side
+panel. In the client portal, home shows what's coming up for the client in the next three months
+from the date fields shown to clients (a launch).
+
+Filter (comboboxes, with a filter box for long lists) by person (anyone, me, or someone), client, work and what to show (everything, open tasks,
 overdue, done tasks, time off, dates, closed work), and search: a fuzzy search across clients,
 work, tasks and people (it forgives typos and partial words: "wbsite" finds Website rebuild).
 Every filter is in the address, so a filtered calendar is a link to bookmark or share.
 
-Keys: `h` and `l` for the previous and next month (week, four weeks), `t` for today, `j` / `k`
-through the days and Enter to open one.
+Keys: `h` and `l` for the previous and next month (week, four weeks), `t` for today, `]` for the
+day panel, `j` / `k` through the days and Enter to open one.
 
 **Subscribe** gives you a private link for Google Calendar, Outlook or Apple's Calendar: your open
 tasks with a due date, everyone's time off and every date you may see, from a month back to six
@@ -46,7 +53,7 @@ someone on it is out?". Calendar links are made only by their person, in the bro
 ## Installing
 
 Settings > Plugins, add `Martin-Business-Consultants/runwell-calendar`, then switch it on. Needs
-Runwell 5.5 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
+Runwell 5.6 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
 the core's records by id; removing it leaves Runwell as it was.
 
 ## Developing

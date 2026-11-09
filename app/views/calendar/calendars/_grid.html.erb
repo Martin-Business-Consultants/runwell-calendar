@@ -1,8 +1,12 @@
-<%# locals: (period:, schedule:, day:) %>
-<%# A month (whole weeks around it) or a week, a row per week, a cell per day. A month's day shows
-    a few things and "+N more"; a week's shows everything. %>
+<%# locals: (period:, schedule:, day:, panel:) %>
+<%# A month (whole weeks around it) or a week, a row per week, a cell per day (Saturdays and Sundays
+    left out with weekends off). A month's day shows a few things and "+N more"; a week's shows
+    everything. Open tasks drag to another day to move their due date (the core's drag-and-drop:
+    each day is a container posting to DropsController). %>
 <% limit = period.view == "month" ? Calendar::CalendarHelper::CALENDAR_DAY_LIMIT : nil %>
-<div class="<%= class_names("calendar-grid", "calendar-grid--week": period.view == "week") %>">
+<div class="<%= class_names("calendar-grid", "calendar-grid--week": period.view == "week", "calendar-grid--weekdays": !period.weekends?) %>"
+  data-controller="drag-and-drop" data-drag-and-drop-dragged-item-class="drag-and-drop__dragged-item" data-drag-and-drop-hover-container-class="drag-and-drop__hover-container"
+  data-action="dragstart->drag-and-drop#dragStart dragover->drag-and-drop#dragOver drop->drag-and-drop#drop dragend->drag-and-drop#dragEnd">
   <div class="calendar-grid__weekdays" aria-hidden="true">
     <% period.weekdays.each do |date| %>
       <%# herb:key date.wday %>
@@ -12,7 +16,7 @@
   <% period.weeks.each do |week| %>
     <%# herb:key week.first.iso8601 %>
     <div class="calendar-grid__week">
-      <%= render partial: "calendar/calendars/cell", collection: week, as: :date, locals: { schedule: schedule, period: period, day: day, limit: limit } %>
+      <%= render partial: "calendar/calendars/cell", collection: week, as: :date, locals: { schedule: schedule, period: period, day: day, limit: limit, panel: panel } %>
     </div>
   <% end %>
 </div>

@@ -1,9 +1,11 @@
 <%# locals: (item:, compact: nil) %>
-<%# One thing on a day (Calendar::Schedule::Item): a task (opens in the side panel), someone out, a
-    date field (a launch) or a piece of work closed (each opens its record). compact: a month cell's
-    one line; otherwise with who's on it and where it sits. A clash marks it: someone on it is out. %>
+<%# One thing on a day (Calendar::Schedule::Item): a task (opens in the side panel; an open one drags
+    to another day), someone out, a date field (a launch), another plugin's (a meeting) or a piece
+    of work closed (each opens its record). compact: a month cell's one line; otherwise with who's
+    on it and where it sits. A clash marks it: someone on it is out. %>
+<% draggable = item.task? && !item.done? %>
 <li class="<%= class_names("calendar-item", "calendar-item--#{item.kind.dasherize}", "calendar-item--overdue": item.overdue?, "calendar-item--done": item.done?,
-      "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>">
+      "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>"<% if draggable %> draggable="true" data-drag-and-drop-target="item" data-id="<%= item.record.id %>"<% end %>>
   <% if item.kind == "time_off" %>
     <span class="calendar-item__main">
       <%= person_tag item.record.user %>
@@ -17,6 +19,20 @@
       <% unless compact %>
         <span class="calendar-item__detail"><%= item.detail %></span>
       <% end %>
+    <% end %>
+  <% elsif item.kind == "plugin" %>
+    <% if item.record.path %>
+      <%= link_to item.record.path, class: "calendar-item__main", data: { turbo_frame: "_top" } do %>
+        <span class="calendar-item__mark" aria-hidden="true"></span>
+        <span class="calendar-item__detail calendar-item__label"><%= item.detail %></span>
+        <span class="calendar-item__title"><%= item.title %></span>
+      <% end %>
+    <% else %>
+      <span class="calendar-item__main">
+        <span class="calendar-item__mark" aria-hidden="true"></span>
+        <span class="calendar-item__detail calendar-item__label"><%= item.detail %></span>
+        <span class="calendar-item__title"><%= item.title %></span>
+      </span>
     <% end %>
   <% else %>
     <%= link_to calendar_record_path(item.record), class: "calendar-item__main", data: { turbo_frame: "_top" } do %>

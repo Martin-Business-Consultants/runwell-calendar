@@ -1,25 +1,28 @@
-<%# locals: (date:, schedule:, period:, day:, limit: nil) %>
-<%# One day in the grid: its number (which opens the day beside the calendar), a marker when someone
-    is out as their task or date lands, and what's on it. It's a keyboard item: j / k move through
-    the days, Enter opens the one you're on. %>
+<%# locals: (date:, schedule:, period:, day:, limit: nil, panel: nil) %>
+<%# One day in the grid: its number (which opens the day), a marker when someone is out as their
+    task or date lands, and what's on it. It's a keyboard item (j / k move through the days, Enter
+    opens the one you're on) and a drop target: an open task dragged here is due this day. With
+    weekends off, a Friday says what's on the weekend after it. %>
 <% items = schedule.on(date) %>
 <% shown = limit ? items.first(limit) : items %>
+<% weekend = !period.weekends? && date.friday? ? [ date + 1, date + 2 ].sum { |weekend_day| schedule.on(weekend_day).size } : 0 %>
 <div class="<%= class_names("calendar-day", "calendar-day--outside": period.outside?(date), "calendar-day--today": date == Date.current,
-      "calendar-day--selected": date == day, "calendar-day--weekend": date.saturday? || date.sunday?, "calendar-day--past": date < Date.current) %>" data-filter-target="item">
+      "calendar-day--selected": panel && date == day, "calendar-day--weekend": Calendar::Period.weekend?(date), "calendar-day--past": date < Date.current) %>"
+  data-filter-target="item" data-drag-and-drop-target="container" data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
   <div class="calendar-day__head">
-    <%= link_to date.day, calendar_link(day: date.iso8601), class: "calendar-day__number", aria: { label: calendar_day_title(date) },
-          data: { turbo_frame: "calendar_day", turbo_action: "advance" } %>
+    <%= calendar_day_link_to date.day, date, panel: panel, class: "calendar-day__number", aria: { label: calendar_day_title(date) } %>
     <% if items.any?(&:clash?) %>
       <span class="calendar-day__clash" title="Someone’s out when their <%= term(:task).downcase %> or date lands"><%= icon_tag "bell-alert" %></span>
     <% end %>
   </div>
-  <% if shown.any? %>
-    <ul class="calendar-day__items">
-      <%= render partial: "calendar/shared/item", collection: shown, as: :item, locals: { compact: true } %>
-    </ul>
-  <% end %>
+  <ul class="calendar-day__items" data-drag-drop-item-container>
+    <%= render partial: "calendar/shared/item", collection: shown, as: :item, locals: { compact: true } %>
+  </ul>
   <% if items.size > shown.size %>
-    <%= link_to "+#{items.size - shown.size} more", calendar_link(day: date.iso8601), class: "calendar-day__more",
-          data: { turbo_frame: "calendar_day", turbo_action: "advance" } %>
+    <%= calendar_day_link_to "+#{items.size - shown.size} more", date, panel: panel, class: "calendar-day__more" %>
+  <% end %>
+  <% if weekend.positive? %>
+    <%= calendar_day_link_to "Weekend: #{weekend}", date + 1, panel: panel, class: "calendar-day__more calendar-day__weekend",
+          title: "#{weekend} on Saturday and Sunday, which are hidden" %>
   <% end %>
 </div>

@@ -18,7 +18,9 @@ module Calendar
     def show
       respond_to do |format|
         format.html do
-          @period = Calendar::Period.new(view: params[:view], date: date_param(:date))
+          @weekends = preference(:weekends, %w[on off]) == "on"
+          @panel = preference(:panel, %w[on off]) == "on"
+          @period = Calendar::Period.new(view: params[:view], date: date_param(:date), weekends: @weekends)
           @day = date_param(:day) || (@period.includes_today? ? Date.current : @period.range.first)
           @schedule = schedule_for(@period.range.cover?(@day) ? @period.range : [ @period.range.first, @day ].min..[ @period.range.last, @day ].max)
           @page_title = "Calendar"

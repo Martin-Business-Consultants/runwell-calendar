@@ -1,17 +1,22 @@
 module Calendar
   # The stretch of days the calendar shows: a month (whole weeks around it), a week, or an agenda
   # of the four weeks from a day. Weeks start on the install's first day of the week
-  # (Date.beginning_of_week, Monday unless set otherwise).
+  # (Date.beginning_of_week, Monday unless set otherwise). With weekends off, the grid's rows leave
+  # out Saturdays and Sundays (the range, and so what's gathered, still covers them).
   class Period
     VIEWS = { "month" => "Month", "week" => "Week", "agenda" => "Agenda" }.freeze
     AGENDA_DAYS = 28
 
     attr_reader :view, :anchor
 
-    def initialize(view:, date:)
+    def initialize(view:, date:, weekends: true)
       @view = view.presence_in(VIEWS.keys) || "month"
       @anchor = date || Date.current
+      @weekends = weekends
     end
+
+    def weekends? = @weekends
+    def self.weekend?(date) = date.saturday? || date.sunday?
 
     def range
       case view
@@ -21,8 +26,8 @@ module Calendar
       end
     end
 
-    def weeks = range.each_slice(7).to_a
-    def weekdays = range.first(7)
+    def weeks = range.each_slice(7).map { |week| shown(week) }
+    def weekdays = shown(range.first(7))
 
     def previous = shift(-1)
     def following = shift(1)
@@ -43,6 +48,8 @@ module Calendar
     end
 
     private
+      def shown(days) = weekends? ? days : days.reject { self.class.weekend?(it) }
+
       def shift(step)
         case view
         when "week" then anchor + (7 * step)

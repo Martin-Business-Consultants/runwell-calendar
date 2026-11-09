@@ -10,6 +10,7 @@ module Calendar
         scope "calendar", module: "calendar", as: "calendar" do
           get "/", to: "calendars#show", as: :page
           get "days/:date", to: "days#show", as: :day, constraints: { date: /\d{4}-\d{2}-\d{2}/ }
+          post "days/:date/drops/:task_id", to: "drops#create", as: :day_drop, constraints: { date: /\d{4}-\d{2}-\d{2}/ }
           resources :time_offs, path: "time-off", only: %i[index new create destroy]
           resource :feed, path: "subscribe", only: %i[show create destroy]
           get "feed/:token", to: "subscriptions#show", as: :subscription, format: true, constraints: { format: "ics" }
@@ -27,14 +28,17 @@ module Calendar
 
     config.to_prepare do
       Runwell::Plugins.register :calendar, name: "Calendar", version: Calendar::VERSION, author: "Martin Business Consultants",
-        enabled_by_default: false, requires: ">= 5.5.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-calendar",
+        enabled_by_default: false, requires: ">= 5.6.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-calendar",
         description: "Who's out, what's due and every date that matters, on one calendar: tasks by due date, time off, launches and other date fields, and work closed, with the clashes (someone out when their task or launch lands). Filters, fuzzy search, a private feed for Google Calendar or Outlook, and tools for AI."
       Runwell::Plugins.nav :calendar, "Calendar", -> { calendar_page_path }, icon: "calendar"
       Runwell::Plugins.permission :calendar, :manage_time_off, name: "Add and remove anyone’s time off", roles: %w[owner manager]
       Runwell::Plugins.stylesheet :calendar, "calendar/calendar"
+      Runwell::Plugins.slot :task_notice, :calendar, "calendar/slots/task_notice"
+      Runwell::Plugins.slot :portal_home, :calendar, "calendar/slots/portal_home"
       Runwell::Plugins.shortcut :calendar, "h", "Calendar: the previous month, week or four weeks"
       Runwell::Plugins.shortcut :calendar, "l", "Calendar: the next month, week or four weeks"
       Runwell::Plugins.shortcut :calendar, "t", "Calendar: today"
+      Runwell::Plugins.shortcut :calendar, "]", "Calendar: show or hide the day panel"
     end
   end
 end

@@ -1,0 +1,31 @@
+<%# locals: (client:) %>
+<%# The portal's home: what's coming up for the client in the next three months, from the date
+    fields shown to clients (Settings > Fields: a work's launch, a renewal), on the client, its work
+    and the tasks shared with it. Nothing shows when there's nothing dated. %>
+<% dated = CustomField.dates_between(Date.current..(Date.current + 90), client: client).sort_by { |_, field, date| [ date, field.label ] } %>
+<% if dated.any? %>
+  <section class="card calendar-portal">
+    <header class="card__head">
+      <h2 class="card__title">Coming up</h2>
+      <p class="card__hint">The next three months.</p>
+    </header>
+    <div class="card__content">
+      <ul class="calendar-portal__list">
+        <% dated.each do |record, field, date| %>
+          <%# herb:key "#{record.class.name}-#{record.id}-#{field.id}" %>
+          <li class="calendar-portal__row">
+            <time class="calendar-portal__date" datetime="<%= date.iso8601 %>"><%= l(date, format: "%b %-d") %></time>
+            <span class="calendar-portal__label"><%= field.label %></span>
+            <% if record.is_a?(Work) %>
+              <%= link_to record.title, portal_work_path(record), class: "calendar-portal__title" %>
+            <% elsif record.is_a?(Task) %>
+              <%= link_to record.title, portal_tasks_path(task: record.id), class: "calendar-portal__title" %>
+            <% else %>
+              <span class="calendar-portal__title"><%= record.name %></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </section>
+<% end %>

@@ -99,3 +99,38 @@ a.calendar-item__main:hover { background: var(--hover); }
 .calendar-panel__add[open] summary { display: none; }
 .calendar-time-off-form { gap: var(--s-3); }
 .calendar-time-off-form .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+
+/* The filters: comboboxes and the search in one row. */
+.calendar-filters { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+
+/* Weekends and the day panel, switched in the bar. */
+.calendar-toggle { display: inline-flex; align-items: center; gap: var(--s-1); text-decoration: none; }
+.calendar-toggle__box {
+  display: inline-grid; place-items: center; width: .9rem; height: .9rem;
+  border: 1px solid var(--line-strong); border-radius: calc(.25rem * var(--radius-scale, 1)); color: transparent;
+}
+.calendar-toggle__box .icon { width: .7rem; height: .7rem; }
+.calendar-toggle[aria-pressed="true"] .calendar-toggle__box { border-color: var(--accent); background: var(--accent); color: var(--accent-ink, var(--panel)); }
+.calendar-panel-toggle[aria-pressed="true"] { background: var(--brand-tint); color: var(--accent); }
+.calendar-layout--wide { grid-template-columns: minmax(0, 1fr); }
+.calendar-grid--weekdays .calendar-grid__weekdays, .calendar-grid--weekdays .calendar-grid__week { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.calendar-day__weekend { font-style: italic; }
+
+/* Dragging a task to another day. */
+.calendar-item[draggable="true"] { cursor: grab; }
+.calendar-day.drag-and-drop__hover-container { background: var(--brand-tint); box-shadow: inset 0 0 0 2px var(--accent); }
+.calendar-item.drag-and-drop__dragged-item { opacity: .5; }
+
+/* Under a task's title: someone on it is out when it's due (calendar/slots/task_notice). */
+.calendar-notice {
+  display: flex; align-items: flex-start; gap: var(--s-2); margin: 0; padding: var(--s-2) var(--s-3);
+  border-radius: calc(.5rem * var(--radius-scale, 1)); background: color-mix(in srgb, var(--attention) 12%, transparent); font-size: var(--text-meta);
+}
+.calendar-notice__icon { flex: none; width: 1rem; height: 1rem; margin-top: 1px; color: var(--attention); }
+
+/* The portal's Coming up (calendar/slots/portal_home). */
+.calendar-portal__list { display: flex; flex-direction: column; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.calendar-portal__row { display: flex; align-items: baseline; gap: var(--s-3); min-width: 0; }
+.calendar-portal__date { flex: none; width: 3.5rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.calendar-portal__label { flex: none; color: var(--text-muted); font-size: var(--text-meta); }
+.calendar-portal__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

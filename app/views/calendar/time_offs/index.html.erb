@@ -1,7 +1,9 @@
 <%# Who's out from today on (Calendar::TimeOffsController#index), soonest first. %>
 <%= parent_page "Calendar", calendar_page_path %>
 <% content_for :index_filters do %>
-  <%= render "layouts/shared/quick_filter", title: "Person", param: :person, options: calendar_person_options, current: params[:person].presence || "anyone" %>
+  <%= form_with url: calendar_time_offs_path, method: :get, class: "calendar-filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
+    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, aria: { label: "Person" }, data: { action: "change->form#submit" } %>
+  <% end %>
 <% end %>
 <%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path %>
 
