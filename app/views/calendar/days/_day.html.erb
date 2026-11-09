@@ -1,6 +1,11 @@
 <%# locals: (schedule:, date:) %>
-<%# A day beside the calendar: who's out, what's due (and overdue, on today), the dates on it, what
-    closed, and how many open tasks each person has due, then a way to add time off on it. %>
+<%# A day beside the calendar: a holiday, who's out (time off, and all-day busy from people's own
+    calendars), what's due (and overdue, on today), the dates on it, what closed, meetings, and how
+    many open tasks each person has due (over the workload limit marked), then a way to add time
+    off on it. %>
+<% holidays = schedule.holidays_on(date) %>
+<% busy_out = schedule.busy_out_on(date) %>
+<% meetings = schedule.meetings_on(date) %>
 <% items = schedule.on(date) %>
 <% out = schedule.out_on(date) %>
 <% due = items.select(&:movable?) %>
@@ -22,8 +27,23 @@
     </p>
   </header>
   <div class="card__content calendar-panel__body">
+    <% if holidays.any? %>
+      <p class="calendar-panel__holiday"><%= icon_tag "calendar" %> <%= holidays.map(&:name).to_sentence %>: everyone’s off.</p>
+    <% end %>
     <section class="calendar-panel__section">
-      <h4 class="calendar-panel__heading">Out <span class="count"><%= out.size %></span></h4>
+      <h4 class="calendar-panel__heading">Out <span class="count"><%= out.size + busy_out.size %></span></h4>
+      <% if busy_out.any? %>
+        <ul class="calendar-panel__list">
+          <% busy_out.each do |event| %>
+            <%# herb:key event.id %>
+            <li class="calendar-out">
+              <%= person_tag event.user %>
+              <span class="calendar-out__name"><%= event.user.display_name %></span>
+              <span class="calendar-out__span muted small">busy all day · <%= event.title_for(Current.user) %></span>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
       <% if out.any? %>
         <ul class="calendar-panel__list">
           <% out.each do |off| %>
@@ -45,8 +65,8 @@
             </li>
           <% end %>
         </ul>
-      <% else %>
-        <p class="muted small">Everyone’s in.</p>
+      <% elsif busy_out.none? %>
+        <p class="muted small"><%= holidays.any? ? "Everyone’s off." : "Everyone’s in." %></p>
       <% end %>
     </section>
 
@@ -91,15 +111,34 @@
       </section>
     <% end %>
 
+    <% if meetings.any? %>
+      <section class="calendar-panel__section">
+        <h4 class="calendar-panel__heading">Meetings <span class="count"><%= meetings.size %></span></h4>
+        <ul class="calendar-panel__list">
+          <% meetings.each do |meeting| %>
+            <%# herb:key meeting.id %>
+            <li class="calendar-out">
+              <%= person_tag meeting.user %>
+              <span class="calendar-out__span small"><%= meeting.time_text %></span>
+              <span class="calendar-out__span muted small"><%= meeting.title_for(Current.user) %></span>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
     <% if load.any? %>
       <section class="calendar-panel__section">
         <h4 class="calendar-panel__heading">Open <%= term(:task, count: 2).downcase %> due, by person</h4>
         <ul class="calendar-panel__list calendar-load">
           <% load.each do |person, count| %>
             <%# herb:key person.id %>
-            <li class="calendar-load__row">
+            <li class="<%= class_names("calendar-load__row", "calendar-load__row--over": schedule.overloaded?(count)) %>">
               <%= person_tag person %>
               <span class="calendar-load__name"><%= person.display_name %></span>
+              <% if schedule.overloaded?(count) %>
+                <span class="calendar-load__over" title="More than <%= schedule.workload_limit %> in a day"><%= icon_tag "bell-alert" %> over the limit</span>
+              <% end %>
               <span class="count"><%= count %></span>
             </li>
           <% end %>

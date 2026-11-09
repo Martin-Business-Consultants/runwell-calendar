@@ -1,8 +1,9 @@
 <%# locals: (task:) %>
-<%# A task in the drawer: dragged by any of it onto a day, as the Tasks board's cards are (the grip
+<%# A task in the drawer (ticked, for the bulk bar's Due and Who's on it): dragged by any of it onto a day, as the Tasks board's cards are (the grip
     shows it can; its title link is never dragged itself, so Safari moves the task, not a link); the
     title opens it in the side panel, and its owners change in place (the core's owner picker). %>
 <li class="calendar-drawer__task" draggable="true" data-drag-and-drop-target="item" data-id="<%= task.id %>">
+  <%= check_box_tag nil, task.id, false, id: nil, class: "calendar-drawer__check", aria: { label: "Pick #{task.title}" }, data: { bulk_target: "item", action: "bulk#update" } %>
   <%= icon_tag "grip", class: "calendar-drawer__grip" %>
   <div class="calendar-drawer__main">
     <%= side_panel_link_to task, task.title, class: "calendar-drawer__title", draggable: "false" %>

@@ -1,0 +1,59 @@
+<%# locals: (period:, schedule:, day:, panel:) %>
+<%# The team's week: a row per person on the team (or the one filtered to), then "Nobody yet" for
+    tasks nobody's on, a column per day. Each cell is that person's day: their tasks, time off,
+    busy days from their own calendar and how many meetings, with a holiday across everyone and a
+    warning when they've more due than the workload limit. A task drags to another day (due then),
+    another row (handed from that person to this one: TeamDropsController) or both, and up and down
+    a cell to rearrange the day. %>
+<% people = schedule.person ? [ schedule.person ] : User.people.active.ordered.to_a %>
+<% days = period.weekdays %>
+<div class="<%= class_names("calendar-team", "calendar-team--weekdays": !period.weekends?) %>">
+  <div class="calendar-team__row calendar-team__row--head" aria-hidden="true">
+    <span class="calendar-team__person"></span>
+    <% days.each do |date| %>
+      <%# herb:key date.iso8601 %>
+      <span class="<%= class_names("calendar-team__day-head", "calendar-team__day-head--today": date == Date.current) %>">
+        <%= calendar_day_link_to l(date, format: "%a %-d"), date, panel: panel, class: "calendar-team__day-link" %>
+        <% schedule.holidays_on(date).each do |holiday| %>
+          <%# herb:key holiday.id %>
+          <span class="calendar-team__holiday" title="<%= holiday.name %>: everyone’s off"><%= holiday.name %></span>
+        <% end %>
+      </span>
+    <% end %>
+  </div>
+  <% (people + [ nil ]).each do |person| %>
+    <%# herb:key person&.id || "nobody" %>
+    <div class="calendar-team__row">
+      <div class="calendar-team__person">
+        <% if person %>
+          <%= person_tag person %>
+          <span class="calendar-team__name"><%= person.display_name %></span>
+        <% else %>
+          <span class="calendar-team__name muted">Nobody yet</span>
+        <% end %>
+      </div>
+      <% days.each do |date| %>
+        <%# herb:key date.iso8601 %>
+        <% items = schedule.for_person(person, date) %>
+        <% due = items.count(&:movable?) %>
+        <% meetings = person ? schedule.meetings_on(date, person) : [] %>
+        <% over = person && schedule.overloaded?(due) %>
+        <div class="<%= class_names("calendar-team__cell", "calendar-team__cell--today": date == Date.current, "calendar-team__cell--holiday": schedule.holidays_on(date).any?,
+              "calendar-team__cell--over": over, "calendar-team__cell--out": person && items.any? { |item| item.time_off? || item.busy? }) %>"
+          data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_team_drop_path(user_id: person&.id || "none", date: date.iso8601, task_id: "__id__") %>">
+          <ul class="calendar-day__items" data-drag-drop-item-container>
+            <%= render partial: "calendar/shared/item", collection: items, as: :item, locals: { compact: true, from: (person&.id || "none") } %>
+          </ul>
+          <% if meetings.any? %>
+            <span class="calendar-team__meetings" title="<%= meetings.map { |meeting| "#{meeting.time_text} #{meeting.title_for(Current.user)}" }.join("\n") %>">
+              <%= pluralize(meetings.size, "meeting") %>
+            </span>
+          <% end %>
+          <% if over %>
+            <span class="calendar-team__over" title="More than <%= schedule.workload_limit %> open <%= term(:task, count: 2).downcase %> due"><%= icon_tag "bell-alert" %> <%= due %> due</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

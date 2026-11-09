@@ -26,6 +26,16 @@
     <%= link_to "Clear", calendar_page_path(params.permit(:view, :date).to_h), class: "btn btn--ghost btn--sm" %>
   <% end %>
 <% end %>
+<%# Tasks ticked in the drawer: the core's bulk bar takes the toolbar's row, to give them a date or
+    someone to do them (bulk_tasks_path runs each task's own update). %>
+<% if @preferences.drawer? %>
+  <% content_for :index_bulk do %>
+    <%= bulk_bar do %>
+      <%= bulk_date bulk_tasks_path, method: :patch, name: "task[due_on]", label: "Due" %>
+      <%= bulk_menu bulk_tasks_path, method: :patch, name: "task[owner_id]", label: "Who’s on it", choices: [ [ "Nobody yet", "none" ] ] + User.people.active.ordered.map { [ it.display_name, it.id ] } %>
+    <% end %>
+  <% end %>
+<% end %>
 <%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path(date: @day.iso8601) %>
 
 <div class="<%= class_names("calendar", "calendar--drawer-open": @preferences.drawer?) %>" data-controller="drag-and-drop"
@@ -76,6 +86,10 @@
     <section class="calendar-main" aria-label="<%= @period.title %>">
       <% if @period.view == "agenda" %>
         <%= render "calendar/calendars/agenda", period: @period, schedule: @schedule, day: @day, panel: @preferences.panel? %>
+      <% elsif @period.team? %>
+        <%= render "calendar/calendars/team", period: @period, schedule: @schedule, day: @day, panel: @preferences.panel? %>
+      <% elsif @period.timeline? %>
+        <%= render "calendar/calendars/timeline", timeline: @timeline %>
       <% else %>
         <%= render "calendar/calendars/grid", period: @period, schedule: @schedule, day: @day, panel: @preferences.panel? %>
       <% end %>
@@ -88,6 +102,10 @@
       </aside>
     <% end %>
   </div>
+
+  <% if flash[:calendar_undo].present? %>
+    <%= render "calendar/calendars/undo", undo: flash[:calendar_undo] %>
+  <% end %>
 
   <% if @preferences.drawer? %>
     <%= render "calendar/drawers/drawer", drawer: @drawer %>

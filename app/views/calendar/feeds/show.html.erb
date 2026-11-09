@@ -1,5 +1,7 @@
-<%# Subscribe (Calendar::FeedsController): the person's private link for their own calendar app.
-    The link shows once, when it's made; after that it can be reset or turned off. %>
+<%# Subscribe (Calendar::FeedsController): the person's private link for their own calendar app
+    (shown once, when it's made; then reset or turned off), and the other way round, their own
+    calendar's private link, read so Runwell knows when they're busy (Calendar::BusyFeed). %>
+<% busy = Calendar::BusyFeed.find_by(user: Current.user.person) %>
 <%= parent_page "Calendar", calendar_page_path %>
 <section class="record-page">
   <header class="record-page__header">
@@ -29,6 +31,36 @@
             <%= button_to "Turn off", calendar_feed_path, method: :delete, class: "btn btn--ghost btn--sm" %>
           <% end %>
         </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card__head">
+        <h2 class="card__title">Your busy time</h2>
+        <p class="card__hint">Connect your own calendar so Runwell knows when you’re busy: an all-day event counts as out (anything of yours due then is flagged), meetings show as busy. Only you see what they’re called; everyone else sees “Busy”. Read each night, from two weeks back to three months ahead.</p>
+      </header>
+      <div class="card__content stack">
+        <% if busy %>
+          <p>
+            Connected<%= ", read #{time_ago_in_words(busy.synced_at)} ago" if busy.synced_at %>.
+            <% if busy.error.present? %>
+              <strong>It couldn’t be read last time:</strong> <%= busy.error %>.
+            <% end %>
+          </p>
+        <% end %>
+        <%= form_with url: calendar_busy_feed_path, method: :patch, scope: :busy_feed, class: "calendar-busy-form" do |form| %>
+          <label class="field">
+            <span class="field__label">Your calendar’s private link</span>
+            <%= form.url_field :url, placeholder: "https://calendar.google.com/calendar/ical/…/private-…/basic.ics", autocomplete: "off", required: true %>
+            <span class="field__hint">Google Calendar: your calendar’s Settings, “Secret address in iCal format”. Outlook: Settings, Calendar, Shared calendars, Publish a calendar, ICS link.</span>
+          </label>
+          <div class="button-row">
+            <button type="submit" class="btn btn--primary btn--sm"><%= busy ? "Replace the link" : "Connect" %></button>
+          </div>
+        <% end %>
+        <% if busy %>
+          <%= button_to "Disconnect", calendar_busy_feed_path, method: :delete, class: "btn btn--ghost btn--sm" %>
+        <% end %>
       </div>
     </section>
   </div>

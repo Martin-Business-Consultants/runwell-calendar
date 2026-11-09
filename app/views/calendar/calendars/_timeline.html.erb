@@ -1,0 +1,48 @@
+<%# locals: (timeline:) %>
+<%# The timeline (Calendar::Timeline): a column per week, months named over them, a row per open
+    piece of work with its bar from its start to its last date (dashed on past the edge when it has
+    none, or runs beyond), a marker for each date (a launch) and today's line. Columns are classes
+    (tl-from-N, tl-to-N, tl-at-N), never inline styles. %>
+<% today = timeline.today_column %>
+<div class="calendar-timeline">
+  <div class="calendar-timeline__row calendar-timeline__row--head" aria-hidden="true">
+    <span class="calendar-timeline__label"></span>
+    <div class="calendar-timeline__track">
+      <% timeline.weeks.each_with_index do |week, index| %>
+        <%# herb:key week.iso8601 %>
+        <span class="<%= class_names("calendar-timeline__week", "tl-at-#{index + 1}", "calendar-timeline__week--month": index.zero? || week.month != timeline.weeks[index - 1].month) %>">
+          <%= index.zero? || week.month != timeline.weeks[index - 1].month ? l(week, format: "%b") : "" %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+  <% timeline.rows.each do |row| %>
+    <%# herb:key row.work.id %>
+    <div class="calendar-timeline__row">
+      <div class="calendar-timeline__label">
+        <%= link_to row.work.title, work_path(row.work), class: "calendar-timeline__work" %>
+        <span class="calendar-timeline__client muted small"><%= row.work.client&.name %></span>
+      </div>
+      <div class="calendar-timeline__track">
+        <% if today %>
+          <span class="<%= class_names("calendar-timeline__today", "tl-at-#{today}") %>" aria-hidden="true"></span>
+        <% end %>
+        <% from = timeline.column(row.start) %>
+        <% to = row.finish ? timeline.column(row.finish) : timeline.weeks.size %>
+        <span class="<%= class_names("calendar-timeline__bar", "tl-from-#{from}", "tl-to-#{to}", "calendar-timeline__bar--open": row.finish.nil? || timeline.after?(row.finish),
+              "calendar-timeline__bar--earlier": timeline.before?(row.start)) %>"
+          title="<%= row.work.title %>: from <%= l(row.start, format: "%b %-d, %Y") %><%= row.finish ? " to #{l(row.finish, format: "%b %-d, %Y")}" : ", no date set" %>"></span>
+        <% row.dates.each do |label, date| %>
+          <%# herb:key "#{label}-#{date}" %>
+          <span class="<%= class_names("calendar-timeline__marker", "tl-at-#{timeline.column(date)}") %>" title="<%= label %>: <%= l(date, format: "%b %-d") %>">
+            <span class="calendar-timeline__marker-label"><%= label %> <%= l(date, format: "%b %-d") %></span>
+          </span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  <% if timeline.rows.none? %>
+    <%= render "layouts/shared/empty", text: "No open #{term(:work).downcase} in these months." %>
+  <% end %>
+  <p class="muted small calendar-timeline__hint">Bars run from when each <%= term(:work).downcase %> started to its last date field (add a Date field such as “Launch” in Settings › Fields).</p>
+</div>

@@ -45,6 +45,20 @@ module Calendar
         @filter_work = value.blank? || value == "all" ? nil : Work.find_by_ref!(value)
       end
 
+      # Undo for a drag: how the task stood before it (its date, who was on it, where it sat in its
+      # day), signed so it can't be altered, good for 15 minutes; offer_undo puts it in the flash
+      # with what happened, for the page the drop refreshes to (calendars/_undo).
+      def remember_undo(task)
+        neighbours = task.due_on ? Calendar::Schedule.new(task.due_on..task.due_on, viewer: Current.user).on(task.due_on).select(&:task?).map { it.record.id } : []
+        after = neighbours.index(task.id)&.then { neighbours[it + 1] }
+        @undo = Rails.application.message_verifier("calendar_undo").generate(
+          { "task_id" => task.id, "due_on" => task.due_on&.iso8601, "owner_ids" => task.owners.map(&:id), "before" => after }, expires_in: 15.minutes)
+      end
+
+      def offer_undo(text)
+        flash[:calendar_undo] = { "text" => text, "token" => @undo } if @undo
+      end
+
       def date_param(key, default = nil)
         Date.iso8601(params[key].to_s)
       rescue Date::Error

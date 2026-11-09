@@ -1,0 +1,31 @@
+<% look = @look_ahead %>
+Your week, <%= @person.first_name %>
+<% if look.clashes.any? %>
+
+Due on a day you're out: <%= look.clashes.map { |task| "#{task.title} (#{l(task.due_on, format: "%a")})" }.to_sentence %>.
+<% end %>
+
+Due this week:
+<% if look.tasks.any? %>
+<% look.tasks.each do |task| %>
+- <%= l(task.due_on, format: "%a %b %-d") %>: <%= task.title %><%= " (#{task.work.title})" if task.work %>
+<% end %>
+<% else %>
+Nothing of yours is due this week.
+<% end %>
+<% if look.overdue.positive? %>
+
+<%= look.overdue %> overdue from before.
+<% end %>
+<% if look.out.any? || look.holidays.any? %>
+
+Away:
+<% look.holidays.each do |holiday| %>
+- <%= l(holiday.date, format: "%a %b %-d") %>: <%= holiday.name %> (everyone)
+<% end %>
+<% look.out.each do |off| %>
+- <%= off.user.display_name %>: <%= off.span_text %><%= " (half day)" if off.half_day? %>
+<% end %>
+<% end %>
+
+Open the calendar: <%= calendar_page_url(view: "week", host: Runwell.host, protocol: Runwell.protocol) %>

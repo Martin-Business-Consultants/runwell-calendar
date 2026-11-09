@@ -37,6 +37,13 @@ Each one's rules live once, on a model; views, controllers and the JSON ask it, 
   may change it (`manageable_by?`)
 - What the calendar shows (`Schedule::SHOWS`), the drawer's due filter (`Drawer::DUES`) and the
   view (`Period::VIEWS`) are constants the filters and tools derive from
+- Out: time off, a holiday (`Calendar::Holiday`, everyone) or an all-day busy event from someone's
+  own calendar (`Calendar::BusyEvent`, read by `Calendar::BusyFeed` through `Calendar::IcsReader`);
+  `Schedule#out?` is the one rule, used for clashes, the team view and `Runwell::Plugins.away`
+  (the owner picker's Out)
+- Workload: overloaded above `Calendar::Setting#workload_limit` (`Schedule#overloaded?`)
+- The look-ahead: sent at most once each Monday (`Setting#look_ahead_sent_on`, `Calendar::LookAhead`)
+- Undo: a signed note of how a task stood before a drag (`remember_undo`), good for 15 minutes
 - The feed (none, just made: its link shown once, on) and a task's placement are kept by
   `Calendar::Feed` and `Calendar::Placement`
 

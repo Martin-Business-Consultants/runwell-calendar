@@ -4,6 +4,11 @@ json.title item.title
 json.detail item.detail
 json.movable item.movable?
 case item.kind
+when "holiday"
+  json.holiday item.title
+when "busy"
+  json.person calendar_person_json(item.record.user)
+  json.busy item.detail
 when "time_off"
   json.person calendar_person_json(item.record.user)
   json.time_off do

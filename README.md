@@ -11,13 +11,20 @@ Who's out, what's due and every date that matters, on one calendar, for
 - **Dates**: every date custom field you may see (Settings > Fields), so a "Launch" date on a piece
   of work, or a "Renewal" on a client, shows on its day
 - **Other plugins' dates**: anything a plugin offers calendars (`Runwell::Plugins.dates`)
+- **Holidays**: days off for everyone, added by hand or read from a public holiday calendar
+  (Settings › Plugins › Calendar); everyone counts as out on them
+- **Busy time**: each person can connect their own Google, Outlook or Apple calendar (its private
+  link, on Subscribe): an all-day event counts as out, meetings show as busy; only they see titles
+- **Workload**: someone with more open tasks due in a day than the limit (settings) is flagged
 - **Work closed**, as completed or cancelled
 - **Clashes**: a task due, or a date on a piece of work (a launch), while someone on it is out, is
   flagged on the day and on the item
 
 ## Using it
 
-Calendar in the nav opens the month; switch to a week or a four-week agenda. Pick a day for its
+Calendar in the nav opens the month; switch to a week, the **team** (a row per person and a column
+per day: drag a task to another day, another person, or both), a four-week agenda, or the
+**timeline** (each open piece of work from its start to its launch or other dates, over 26 weeks). Pick a day for its
 panel: who's out, what's due (and overdue, on today), its dates, what closed, how many open tasks
 each person has due, and Add time off for that day. Hide the panel (`]`) for a wider calendar, and
 switch Weekends off for a five-day grid (a Friday then says what's on the weekend); both are
@@ -29,7 +36,12 @@ all) to rearrange them. The order is kept.
 filters (due: no date, the default, overdue, the next two weeks or any; who's on it, including
 nobody yet; client; work), on the right the open tasks they find. Drag one onto a day to set its
 date, or a day's task back into the drawer to clear it; change who's on it in place, and click its
-title to open it in the side panel.
+title to open it in the side panel. Tick tasks in the drawer to give them all a date or someone to
+do them at once (the bulk bar). After any drag, a bar says what happened, with **Undo** (or ⌘Z).
+
+When you put someone on a task, the owner picker marks them **Out** if they're away the day it's
+due. Each Monday the calendar can email everyone their week: what's due, overdue, who's away, and
+anything due on a day they're out (turn it on in the settings).
 
 A task due on a day someone on it is out says so under its title, on its page and in the side
 panel. In the client portal, home shows what's coming up for the client in the next three months
@@ -62,7 +74,7 @@ someone on it is out?". Calendar links are made only by their person, in the bro
 ## Installing
 
 Settings > Plugins, add `Martin-Business-Consultants/runwell-calendar`, then switch it on. Needs
-Runwell 5.7.3 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
+Runwell 5.8 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
 the core's records by id; removing it leaves Runwell as it was.
 
 ## Developing

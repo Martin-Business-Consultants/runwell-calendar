@@ -7,13 +7,17 @@
 <% items = schedule.on(date) %>
 <% shown = limit ? items.first(limit) : items %>
 <% weekend = !period.weekends? && date.friday? ? [ date + 1, date + 2 ].sum { |weekend_day| schedule.on(weekend_day).size } : 0 %>
+<% overloaded = schedule.overloaded_on(date) %>
 <div class="<%= class_names("calendar-day", "calendar-day--outside": period.outside?(date), "calendar-day--today": date == Date.current,
-      "calendar-day--selected": panel && date == day, "calendar-day--weekend": Calendar::Period.weekend?(date), "calendar-day--past": date < Date.current) %>"
+      "calendar-day--selected": panel && date == day, "calendar-day--weekend": Calendar::Period.weekend?(date), "calendar-day--past": date < Date.current, "calendar-day--holiday": schedule.holidays_on(date).any?) %>"
   data-filter-target="item" data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
   <div class="calendar-day__head">
     <%= calendar_day_link_to date.day, date, panel: panel, class: "calendar-day__number", aria: { label: calendar_day_title(date) } %>
     <% if items.any?(&:clash?) %>
       <span class="calendar-day__clash" title="Someone’s out when their <%= term(:task).downcase %> or date lands"><%= icon_tag "bell-alert" %></span>
+    <% end %>
+    <% if overloaded.any? %>
+      <span class="calendar-day__over" title="<%= overloaded.map(&:display_name).to_sentence %>: more than <%= schedule.workload_limit %> due"><%= icon_tag "person" %><%= overloaded.size %></span>
     <% end %>
   </div>
   <ul class="calendar-day__items" data-drag-drop-item-container>

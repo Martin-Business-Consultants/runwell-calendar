@@ -8,13 +8,15 @@ module Calendar
   # so the page and the list_calendar tool read the same.
   #
   # A clash is what makes it more than a picture: a task due on a day someone on it is out, or a
-  # date on a piece of work (a launch) while someone working on it is out. Clashes are worked out
-  # from everyone's time off, whatever the filters show.
+  # date on a piece of work (a launch) while someone working on it is out. Out is time off, a
+  # holiday (everyone) or an all-day busy event on their own calendar (Calendar::BusyFeed); clashes
+  # are worked out from all of it, whatever the filters show. Someone with more open tasks due in a
+  # day than the workload limit (Calendar::Setting) is overloaded that day.
   class Schedule
     SHOWS = { "all" => "Everything", "open" => "Open tasks", "overdue" => "Overdue", "done" => "Done tasks",
       "time_off" => "Time off", "dates" => "Dates", "closed" => "Closed work" }.freeze
     # What can be on a day, in the order a day lists them.
-    KINDS = %w[time_off date plugin task closed].freeze
+    KINDS = %w[holiday time_off busy date plugin task closed].freeze
     KIND_ORDER = KINDS
 
     # One thing on a day. kind: task, time_off, date, plugin (another plugin's, its record a
@@ -44,7 +46,7 @@ module Calendar
     # done ones last.
     def items
       @items ||= begin
-        all = task_items + time_off_items + date_items + plugin_items + closed_items
+        all = holiday_items + task_items + time_off_items + busy_items + date_items + plugin_items + closed_items
         positions = Calendar::Placement.positions_for(all.select(&:task?).map { it.record.id })
         all.sort_by { [ it.date, KIND_ORDER.index(it.kind), it.done? ? 1 : 0, (it.task? && positions[it.record.id]) || Float::INFINITY, it.title.downcase ] }
       end
@@ -64,7 +66,33 @@ module Calendar
 
     # Open tasks due on a day per person (the lead and everyone on it): how loaded each is.
     def load_on(date)
-      on(date).select { it.task? && !it.done? }.flat_map(&:people).tally.sort_by { |user, count| [ -count, user.display_name ] }
+      on(date).select(&:movable?).flat_map(&:people).tally.sort_by { |user, count| [ -count, user.display_name ] }
+    end
+
+    # How many open tasks due in a day is too many for one person (Calendar::Setting).
+    def workload_limit = @workload_limit ||= Calendar::Setting.current.workload_limit
+    def overloaded?(count) = count > workload_limit
+    def overloaded_on(date) = load_on(date).select { |_, count| overloaded?(count) }.map(&:first)
+
+    def holidays_on(date) = holidays.select { it.date == date }
+
+    # Someone's meetings on a day (timed busy events from their own calendar).
+    def meetings_on(date, user = nil)
+      busy.reject(&:all_day).select { it.covers?(date) && (user.nil? || it.user_id == user.id) }.sort_by(&:starts_at)
+    end
+
+    # Everyone's all-day busy on a day (out, from their own calendar).
+    def busy_out_on(date) = busy.select { it.all_day && it.covers?(date) }
+
+    # The team view's rows: what's on a day for one person (their tasks, their time off and busy
+    # day), or, for nobody, tasks nobody's on.
+    def for_person(user, date)
+      on(date).select do |item|
+        if user.nil? then item.task? && item.people.empty?
+        elsif item.task? || item.time_off? || item.busy? then item.people.any? { it.id == user.id }
+        else false
+        end
+      end
     end
 
     private
@@ -146,6 +174,29 @@ module Calendar
         end
       end
 
+      def holiday_items
+        return [] unless shows?("time_off")
+
+        holidays.map do |holiday|
+          Item.new(kind: "holiday", date: holiday.date, title: holiday.name, record: holiday, people: [], detail: "Holiday", status: nil, clash: [])
+        end
+      end
+
+      # All-day busy events from people's own calendars: out that day, titled only for the person.
+      def busy_items
+        return [] unless shows?("time_off")
+
+        events = busy.select(&:all_day)
+        events = events.select { it.user_id == person.id } if person
+        events = events.select { |event| matches[:people].any? { it.id == event.user_id } } if query
+        events.flat_map do |event|
+          (event.starts_on..event.ends_on).select { range.cover?(it) }.map do |date|
+            Item.new(kind: "busy", date: date, title: event.user.display_name, record: event, people: [ event.user ],
+              detail: event.title_for(viewer), status: nil, clash: [])
+          end
+        end
+      end
+
       def closed_items
         return [] unless shows?("closed")
 
@@ -202,8 +253,14 @@ module Calendar
       def record_title(record) = record.try(:title) || record.try(:name)
 
       def everyone_out = @everyone_out ||= TimeOff.overlapping(range).includes(:user).ordered.to_a
+      def holidays = @holidays ||= Calendar::Holiday.between(range).ordered.to_a
+      def busy = @busy ||= Calendar::BusyEvent.overlapping(range).includes(:user).to_a
 
-      def out?(user, date) = everyone_out.any? { it.user_id == user.id && it.covers?(date) }
+      # Out on a day: their time off, a holiday, or an all-day busy event on their own calendar.
+      def out?(user, date)
+        holidays.any? { it.date == date } || everyone_out.any? { it.user_id == user.id && it.covers?(date) } ||
+          busy.any? { it.all_day && it.user_id == user.id && it.covers?(date) }
+      end
 
       # What the search found: tasks, works and clients (fuzzy, ranked, as ids) and people by name.
       def matches

@@ -1,0 +1,10 @@
+<%# locals: (undo:) %>
+<%# What a drag just did, with a way back (UndosController): a bar at the foot of the calendar that
+    fades on its own after a while. ⌘Z (Ctrl+Z) undoes it from anywhere on the page. %>
+<div class="calendar-undo" role="status">
+  <%= icon_tag "check", class: "calendar-undo__icon" %>
+  <span class="calendar-undo__text"><%= undo["text"] %></span>
+  <%= button_to calendar_undo_path, params: { token: undo["token"] }, class: "btn btn--secondary btn--sm calendar-undo__button", form_class: "calendar-undo__form", data: { keys: "mod+z" } do %>
+    <%= icon_tag "refresh" %> <span>Undo</span>
+  <% end %>
+</div>

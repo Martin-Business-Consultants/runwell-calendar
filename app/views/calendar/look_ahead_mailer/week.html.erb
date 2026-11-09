@@ -1,0 +1,28 @@
+<% look = @look_ahead %>
+<% content_for :preheader, "#{look.tasks.size} due this week#{", #{look.overdue} overdue" if look.overdue.positive?}#{", #{look.out.size} away" if look.out.any?}." %>
+<% content_for :reason, "You’re getting this because your calendar sends a look-ahead each Monday. Whoever manages settings can turn it off." %>
+<%= mail_heading "Your week, #{@person.first_name}" %>
+<% if look.clashes.any? %>
+  <p><strong><%= look.clashes.size %> of your <%= Setting.current.term(:task, count: look.clashes.size).downcase %> <%= look.clashes.one? ? "is" : "are" %> due on a day you’re out:</strong> <%= look.clashes.map { |task| "#{task.title} (#{l(task.due_on, format: "%a")})" }.to_sentence %>.</p>
+<% end %>
+<% if look.tasks.any? %>
+  <p><strong>Due this week</strong></p>
+  <% look.tasks.each do |task| %>
+    <p><%= l(task.due_on, format: "%a %b %-d") %> · <%= task.title %><% if task.work %> <span>(<%= task.work.title %>)</span><% end %></p>
+  <% end %>
+<% else %>
+  <p>Nothing of yours is due this week.</p>
+<% end %>
+<% if look.overdue.positive? %>
+  <p><%= look.overdue %> overdue from before.</p>
+<% end %>
+<% if look.out.any? || look.holidays.any? %>
+  <p><strong>Away</strong></p>
+  <% look.holidays.each do |holiday| %>
+    <p><%= l(holiday.date, format: "%a %b %-d") %> · <%= holiday.name %> (everyone)</p>
+  <% end %>
+  <% look.out.each do |off| %>
+    <p><%= off.user.display_name %> · <%= off.span_text %><%= " (half day)" if off.half_day? %></p>
+  <% end %>
+<% end %>
+<%= mail_button "Open the calendar", calendar_page_url(view: "week", host: Runwell.host, protocol: Runwell.protocol) %>

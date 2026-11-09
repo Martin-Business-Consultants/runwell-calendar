@@ -11,8 +11,10 @@ module Calendar
     def create
       task = Task.find(params[:task_id])
       date = date_param(:date) or raise ActiveRecord::RecordNotFound
+      remember_undo(task) if Calendar::TaskRules.movable?(task)
       if Calendar::TaskRules.movable?(task) && task.update(due_on: date)
         Calendar::Placement.place!(task, before: params[:before])
+        offer_undo("#{task.title}: due #{l(date, format: "%a %b %-d")}")
       end
 
       respond_to do |format|
@@ -23,7 +25,8 @@ module Calendar
 
     def destroy
       task = Task.find(params[:task_id])
-      task.update(due_on: nil) if Calendar::TaskRules.movable?(task)
+      remember_undo(task) if Calendar::TaskRules.movable?(task)
+      offer_undo("#{task.title}: no date now") if Calendar::TaskRules.movable?(task) && task.update(due_on: nil)
 
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.refresh(request_id: nil) }

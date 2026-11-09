@@ -1,14 +1,28 @@
-<%# locals: (item:, compact: nil, avatars: nil) %>
+<%# locals: (item:, compact: nil, avatars: nil, from: nil) %>
 <%# One thing on a day (Calendar::Schedule::Item): a task (opens in the side panel; an open one drags
     to another day), someone out, a date field (a launch), another plugin's (a meeting) or a piece
     of work closed (each opens its record). compact: a month cell's one line; otherwise with who's
     on it and where it sits. avatars: who's on it even on one line (the week, which has the room). A
     clash marks it: someone on it is out. An open task drags the way the Tasks board's cards do: the
-    whole item is what moves (the grip shows it can), and its link is never dragged itself. %>
+    whole item is what moves (the grip shows it can), and its link is never dragged itself. from:
+    in the team view, whose row it's in (a user's id, or "none"), sent with it as "task-from", so a
+    drop in another row hands it from that person to the next. A holiday is everyone's day off; a
+    busy day comes from someone's own calendar, titled only for them. %>
 <% draggable = item.movable? %>
 <li class="<%= class_names("calendar-item", "calendar-item--#{item.kind.dasherize}", "calendar-item--overdue": item.overdue?, "calendar-item--done": item.done?,
-      "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>"<% if draggable %> draggable="true" data-drag-and-drop-target="item" data-id="<%= item.record.id %>"<% end %>>
-  <% if item.time_off? %>
+      "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>"<% if draggable %> draggable="true" data-drag-and-drop-target="item" data-id="<%= from ? "#{item.record.id}-#{from}" : item.record.id %>"<% end %>>
+  <% if item.holiday? %>
+    <span class="calendar-item__main">
+      <%= icon_tag "calendar", class: "calendar-item__icon" %>
+      <span class="calendar-item__title"><%= item.title %></span>
+    </span>
+  <% elsif item.busy? %>
+    <span class="calendar-item__main">
+      <%= person_tag item.record.user %>
+      <span class="calendar-item__title"><%= item.record.user.display_name %></span>
+      <span class="calendar-item__detail"><%= item.detail %></span>
+    </span>
+  <% elsif item.time_off? %>
     <span class="calendar-item__main">
       <%= person_tag item.record.user %>
       <span class="calendar-item__title"><%= item.record.user.display_name %></span>
@@ -50,7 +64,7 @@
   <% if item.clash? %>
     <span class="calendar-item__clash" title="<%= calendar_clash_text(item.clash) %>"><%= icon_tag "bell-alert" %><span class="visually-hidden"><%= calendar_clash_text(item.clash) %></span></span>
   <% end %>
-  <% if (!compact || avatars) && item.people.any? && !item.time_off? %>
+  <% if (!compact || avatars) && item.people.any? && !item.time_off? && !item.busy? %>
     <span class="calendar-item__people">
       <% item.people.first(3).each do |person| %>
         <%# herb:key person.id %>

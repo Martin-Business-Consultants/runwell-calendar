@@ -7,7 +7,8 @@ module Calendar
     allow_staff
     agent_tool :list_calendar, on: :show, title: "Read the calendar: who's out, what's due and every date",
       description: "Day by day from `from` to `to` (dates, YYYY-MM-DD; default today and the 13 days after; at most #{MAX_DAYS} days): " \
-        "tasks by due date (open, overdue or done, with who's on each), who's out (time off), every date field you may see " \
+        "tasks by due date (open, overdue or done, with who's on each, and whether each is movable), who's out (time off, holidays for everyone, " \
+        "all-day busy from people's own calendars), every date field you may see " \
         "(a piece of work's launch, a client's renewal) and work closed. A clash is someone on a task or a piece of work who's out that day. " \
         "person: me, anyone (default), or someone's id or name; client: an id or name; work: a ref; " \
         "show: all, open, overdue, done, time_off, dates or closed; q: a search (fuzzy: typos and partial words) across clients, work, tasks and people. " \
@@ -23,6 +24,7 @@ module Calendar
           @period = Calendar::Period.new(view: params[:view], date: date_param(:date), weekends: @preferences.weekends?)
           @day = date_param(:day) || (@period.includes_today? ? Date.current : @period.range.first)
           @schedule = schedule_for(@period.range.cover?(@day) ? @period.range : [ @period.range.first, @day ].min..[ @period.range.last, @day ].max)
+          @timeline = Calendar::Timeline.new(@period.range, client: filter_client, work: filter_work, person: filter_person, viewer: Current.user) if @period.timeline?
           @page_title = "Calendar"
         end
         format.json do
