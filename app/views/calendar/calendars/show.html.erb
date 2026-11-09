@@ -1,0 +1,68 @@
+<%# The calendar (Calendar::CalendarsController): filters and search over a month, week or agenda,
+    the day picked open beside it. Every choice is a query param, so a filtered calendar is a link;
+    picking a day loads only its panel (the calendar_day frame) and advances the address. The search
+    box is permanent across visits (data-turbo-permanent), so typing keeps focus while the page
+    refreshes under it. %>
+<% content_for :index_filters do %>
+  <%= render "layouts/shared/quick_filter", title: "Person", param: :person, options: calendar_person_options, current: params[:person].presence || "anyone" %>
+  <%= render "layouts/shared/quick_filter", title: term(:client), param: :client, options: calendar_client_options, current: params[:client].presence || "all" %>
+  <%= render "layouts/shared/quick_filter", title: term(:work), param: :work, options: calendar_work_options, current: params[:work].presence || "all" %>
+  <%= render "layouts/shared/quick_filter", title: "Show", param: :show, options: calendar_show_options, current: @schedule.show %>
+  <form action="<%= calendar_page_path %>" method="get" class="calendar-search" role="search" data-controller="form" data-turbo-action="replace">
+    <% request.query_parameters.except("q", "day").each do |name, value| %>
+      <%# herb:key name %>
+      <input type="hidden" name="<%= name %>" value="<%= value %>">
+    <% end %>
+    <%= icon_tag "search", class: "calendar-search__icon" %>
+    <input type="search" name="q" id="calendar_search" value="<%= params[:q] %>" class="calendar-search__input" placeholder="Search people, <%= term(:work).downcase %>, <%= term(:task, count: 2).downcase %>…"
+      autocomplete="off" aria-label="Search the calendar" data-turbo-permanent data-1p-ignore="true" data-action="input->form#debouncedSubmit">
+  </form>
+  <% if @schedule.filtered? %>
+    <%= link_to "Clear", calendar_page_path(params.permit(:view, :date).to_h), class: "btn btn--ghost btn--sm" %>
+  <% end %>
+<% end %>
+<%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path(date: @day.iso8601) %>
+
+<div class="calendar">
+  <div class="calendar-bar">
+    <div class="calendar-bar__nav">
+      <%= link_to calendar_link(date: @period.previous.iso8601, day: nil), class: "icon-button", title: "Previous (h)", data: { keys: "h" } do %>
+        <%= icon_tag "arrow-left" %><span class="visually-hidden">Previous</span>
+      <% end %>
+      <%= link_to "Today", calendar_link(date: nil, day: nil), class: "btn btn--secondary btn--sm", title: "Today (t)", data: { keys: "t" } %>
+      <%= link_to calendar_link(date: @period.following.iso8601, day: nil), class: "icon-button", title: "Next (l)", data: { keys: "l" } do %>
+        <%= icon_tag "arrow-right" %><span class="visually-hidden">Next</span>
+      <% end %>
+      <h2 class="calendar-bar__title"><%= @period.title %></h2>
+    </div>
+    <div class="calendar-bar__actions">
+      <nav class="tabs tabs--pills" aria-label="View">
+        <% Calendar::Period::VIEWS.each do |view, label| %>
+          <%# herb:key view %>
+          <%= link_to label, calendar_link(view: (view unless view == "month")), class: "tabs__tab", aria: { current: (view == @period.view ? "page" : nil) } %>
+        <% end %>
+      </nav>
+      <%= link_to calendar_time_offs_path, class: "btn btn--ghost btn--sm" do %>
+        <%= icon_tag "person" %> <span>Time off</span>
+      <% end %>
+      <%= link_to calendar_feed_path, class: "btn btn--ghost btn--sm", title: "Add this calendar to Google Calendar, Outlook or Apple’s" do %>
+        <%= icon_tag "share" %> <span>Subscribe</span>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="calendar-layout">
+    <section class="calendar-main" aria-label="<%= @period.title %>">
+      <% if @period.view == "agenda" %>
+        <%= render "calendar/calendars/agenda", period: @period, schedule: @schedule, day: @day %>
+      <% else %>
+        <%= render "calendar/calendars/grid", period: @period, schedule: @schedule, day: @day %>
+      <% end %>
+    </section>
+    <aside class="calendar-aside">
+      <turbo-frame id="calendar_day">
+        <%= render "calendar/days/day", schedule: @schedule, date: @day %>
+      </turbo-frame>
+    </aside>
+  </div>
+</div>

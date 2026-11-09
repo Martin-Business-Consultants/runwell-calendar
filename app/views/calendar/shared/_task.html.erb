@@ -1,0 +1,18 @@
+<%# locals: (task:, with_due: nil) %>
+<%# An overdue task in a list (the day panel on today, the agenda): it opens in the side panel; with_due
+    says when it was due. %>
+<li class="calendar-item calendar-item--task calendar-item--overdue">
+  <%= side_panel_link_to task, class: "calendar-item__main" do %>
+    <span class="calendar-item__mark" aria-hidden="true"></span>
+    <span class="calendar-item__title"><%= task.title %></span>
+    <% if with_due %>
+      <span class="calendar-item__detail">due <%= l(task.due_on, format: "%b %-d") %></span>
+    <% end %>
+  <% end %>
+  <span class="calendar-item__people">
+    <% task.owners.first(3).each do |person| %>
+      <%# herb:key person.id %>
+      <%= person_tag person %>
+    <% end %>
+  </span>
+</li>

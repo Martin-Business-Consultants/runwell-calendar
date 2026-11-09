@@ -1,0 +1,18 @@
+<%# locals: (period:, schedule:, day:) %>
+<%# A month (whole weeks around it) or a week, a row per week, a cell per day. A month's day shows
+    a few things and "+N more"; a week's shows everything. %>
+<% limit = period.view == "month" ? Calendar::CalendarHelper::CALENDAR_DAY_LIMIT : nil %>
+<div class="<%= class_names("calendar-grid", "calendar-grid--week": period.view == "week") %>">
+  <div class="calendar-grid__weekdays" aria-hidden="true">
+    <% period.weekdays.each do |date| %>
+      <%# herb:key date.wday %>
+      <span class="calendar-grid__weekday"><%= l(date, format: "%a") %></span>
+    <% end %>
+  </div>
+  <% period.weeks.each do |week| %>
+    <%# herb:key week.first.iso8601 %>
+    <div class="calendar-grid__week">
+      <%= render partial: "calendar/calendars/cell", collection: week, as: :date, locals: { schedule: schedule, period: period, day: day, limit: limit } %>
+    </div>
+  <% end %>
+</div>

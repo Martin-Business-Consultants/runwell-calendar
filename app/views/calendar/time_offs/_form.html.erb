@@ -1,0 +1,32 @@
+<%# locals: (time_off:, compact: nil) %>
+<%# Adding time off: who (yourself, or anyone if you may manage time off), from and to, a half day,
+    and a note only they and those who manage time off read. compact: inside the day panel. It
+    submits to the whole page, which opens on the first day out. %>
+<%= form_with model: time_off, url: calendar_time_offs_path, scope: :time_off, namespace: (compact ? "day_time_off" : "time_off"),
+      class: class_names("calendar-time-off-form", "calendar-time-off-form--compact": compact), data: { turbo_frame: "_top" } do |form| %>
+  <% if time_off.errors.any? %>
+    <div class="alert alert--danger" role="alert"><%= time_off.errors.full_messages.to_sentence %>.</div>
+  <% end %>
+  <label class="field">
+    <span class="field__label">Who</span>
+    <%= form.select :user_id, calendar_time_off_people, {}, aria: { label: "Who" } %>
+  </label>
+  <div class="field-row">
+    <label class="field">
+      <span class="field__label">From</span>
+      <%= date_input form, :starts_on, required: true %>
+    </label>
+    <label class="field">
+      <span class="field__label">To</span>
+      <%= date_input form, :ends_on %>
+    </label>
+  </div>
+  <%= switch_field form, :half_day, label: "Half a day", hint: (compact ? nil : "Only for a single day.") %>
+  <label class="field">
+    <span class="field__label">Note <span class="muted">(optional)</span></span>
+    <%= form.text_field :note, maxlength: 200, autocomplete: "off", placeholder: "Seen only by them and whoever manages time off" %>
+  </label>
+  <div class="button-row">
+    <button type="submit" class="btn btn--primary btn--sm">Add time off</button>
+  </div>
+<% end %>

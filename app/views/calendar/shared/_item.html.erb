@@ -1,0 +1,39 @@
+<%# locals: (item:, compact: nil) %>
+<%# One thing on a day (Calendar::Schedule::Item): a task (opens in the side panel), someone out, a
+    date field (a launch) or a piece of work closed (each opens its record). compact: a month cell's
+    one line; otherwise with who's on it and where it sits. A clash marks it: someone on it is out. %>
+<li class="<%= class_names("calendar-item", "calendar-item--#{item.kind.dasherize}", "calendar-item--overdue": item.overdue?, "calendar-item--done": item.done?,
+      "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>">
+  <% if item.kind == "time_off" %>
+    <span class="calendar-item__main">
+      <%= person_tag item.record.user %>
+      <span class="calendar-item__title"><%= item.record.user.display_name %></span>
+      <span class="calendar-item__detail"><%= item.detail %></span>
+    </span>
+  <% elsif item.task? %>
+    <%= side_panel_link_to item.record, class: "calendar-item__main" do %>
+      <span class="calendar-item__mark" aria-hidden="true"></span>
+      <span class="calendar-item__title"><%= item.title %></span>
+      <% unless compact %>
+        <span class="calendar-item__detail"><%= item.detail %></span>
+      <% end %>
+    <% end %>
+  <% else %>
+    <%= link_to calendar_record_path(item.record), class: "calendar-item__main", data: { turbo_frame: "_top" } do %>
+      <span class="calendar-item__mark" aria-hidden="true"></span>
+      <span class="calendar-item__detail calendar-item__label"><%= item.detail %></span>
+      <span class="calendar-item__title"><%= item.title %></span>
+    <% end %>
+  <% end %>
+  <% if item.clash? %>
+    <span class="calendar-item__clash" title="<%= calendar_clash_text(item.clash) %>"><%= icon_tag "bell-alert" %><span class="visually-hidden"><%= calendar_clash_text(item.clash) %></span></span>
+  <% end %>
+  <% if !compact && item.people.any? && item.kind != "time_off" %>
+    <span class="calendar-item__people">
+      <% item.people.first(3).each do |person| %>
+        <%# herb:key person.id %>
+        <%= person_tag person %>
+      <% end %>
+    </span>
+  <% end %>
+</li>

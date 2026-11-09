@@ -1,0 +1,29 @@
+<%# locals: (period:, schedule:, day:) %>
+<%# Four weeks from a day as a list: each day with something on it, then what's on it, with who's
+    on each. Today leads with what's overdue. %>
+<% days = period.range.select { |date| schedule.on(date).any? } %>
+<div class="calendar-agenda">
+  <% if period.includes_today? && schedule.overdue.any? %>
+    <section class="calendar-agenda__day calendar-agenda__day--overdue">
+      <h3 class="calendar-agenda__date">Overdue <span class="count"><%= schedule.overdue.size %></span></h3>
+      <ul class="calendar-agenda__items">
+        <%= render partial: "calendar/shared/task", collection: schedule.overdue, as: :task, locals: { with_due: true } %>
+      </ul>
+    </section>
+  <% end %>
+  <% days.each do |date| %>
+    <%# herb:key date.iso8601 %>
+    <section class="<%= class_names("calendar-agenda__day", "calendar-agenda__day--today": date == Date.current, "calendar-agenda__day--selected": date == day) %>" data-filter-target="item">
+      <h3 class="calendar-agenda__date">
+        <%= link_to calendar_day_title(date), calendar_link(day: date.iso8601), data: { turbo_frame: "calendar_day", turbo_action: "advance" } %>
+        <% if date == Date.current %><span class="badge badge--ok">Today</span><% end %>
+      </h3>
+      <ul class="calendar-agenda__items">
+        <%= render partial: "calendar/shared/item", collection: schedule.on(date), as: :item, locals: { compact: false } %>
+      </ul>
+    </section>
+  <% end %>
+  <% if days.none? %>
+    <%= render "layouts/shared/empty", text: "Nothing dated in these four weeks#{" with these filters" if schedule.filtered?}.", action_text: nil, action_path: nil %>
+  <% end %>
+</div>

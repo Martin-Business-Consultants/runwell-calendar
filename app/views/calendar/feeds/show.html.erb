@@ -1,0 +1,45 @@
+<%# Subscribe (Calendar::FeedsController): the person's private link for their own calendar app.
+    The link shows once, when it's made; after that it can be reset or turned off. %>
+<%= parent_page "Calendar", calendar_page_path %>
+<section class="record-page">
+  <header class="record-page__header">
+    <div class="record-page__heading">
+      <h1 class="page-title">Subscribe</h1>
+      <p class="record-page__description">See Runwell’s dates in Google Calendar, Outlook or Apple’s Calendar.</p>
+    </div>
+  </header>
+  <div class="record-page__main">
+    <section class="card">
+      <header class="card__head">
+        <h2 class="card__title">Your calendar link</h2>
+        <p class="card__hint">Your open <%= term(:task, count: 2).downcase %> with a due date, everyone’s time off, and every date you can see, from a month back to six months ahead. Calendar apps check it every few hours.</p>
+      </header>
+      <div class="card__content stack">
+        <% if @feed&.token %>
+          <%= copy_field calendar_subscription_url(token: @feed.token, format: "ics", host: Runwell.host, protocol: Runwell.protocol) %>
+          <p class="muted small">Copy it now: it’s shown only once. Anyone with it can read these dates, so keep it to yourself.</p>
+        <% elsif @feed %>
+          <p>Your link is on<%= ", last read #{time_ago_in_words(@feed.last_fetched_at)} ago" if @feed.last_fetched_at %>. It isn’t shown again; reset it for a new one (the old one stops working).</p>
+        <% else %>
+          <p class="muted">You don’t have a link yet.</p>
+        <% end %>
+        <div class="button-row">
+          <%= button_to(@feed ? "Reset link" : "Make my link", calendar_feed_path, class: "btn btn--primary btn--sm") %>
+          <% if @feed %>
+            <%= button_to "Turn off", calendar_feed_path, method: :delete, class: "btn btn--ghost btn--sm" %>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  </div>
+  <aside class="record-page__aside">
+    <section class="card card--sm">
+      <header class="card__head"><h2 class="card__title">Adding it</h2></header>
+      <div class="card__content">
+        <p class="muted small"><strong>Google Calendar:</strong> Other calendars, +, From URL.</p>
+        <p class="muted small"><strong>Outlook:</strong> Add calendar, Subscribe from web.</p>
+        <p class="muted small"><strong>Apple Calendar:</strong> File, New Calendar Subscription.</p>
+      </div>
+    </section>
+  </aside>
+</section>

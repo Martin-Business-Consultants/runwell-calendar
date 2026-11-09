@@ -1,0 +1,38 @@
+<%# Who's out from today on (Calendar::TimeOffsController#index), soonest first. %>
+<%= parent_page "Calendar", calendar_page_path %>
+<% content_for :index_filters do %>
+  <%= render "layouts/shared/quick_filter", title: "Person", param: :person, options: calendar_person_options, current: params[:person].presence || "anyone" %>
+<% end %>
+<%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path %>
+
+<% if @time_offs.any? %>
+  <div class="table-wrap">
+    <table class="table calendar-time-off-table">
+      <thead>
+        <tr><th>Who</th><th>When</th><th>Note</th><th><span class="visually-hidden">Actions</span></th></tr>
+      </thead>
+      <tbody>
+        <% @time_offs.each do |off| %>
+          <%# herb:key off.id %>
+          <tr data-filter-target="item">
+            <td class="table__grow"><span class="calendar-out"><%= person_tag off.user %> <span><%= off.user.display_name %></span></span></td>
+            <td>
+              <%= link_to calendar_page_path(date: off.starts_on.iso8601, day: off.starts_on.iso8601) do %>
+                <%= off.span_text %><% if off.half_day? %> · half day<% end %>
+              <% end %>
+            </td>
+            <td class="muted"><%= off.note if off.note_visible_to?(Current.user) %></td>
+            <td>
+              <% if off.manageable_by?(Current.user) %>
+                <%= render "layouts/shared/delete_dialog", name: "#{off.user.display_name}’s time off (#{off.span_text})", path: calendar_time_off_path(off),
+                      message: "They show as in again for those days." %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <%= render "layouts/shared/empty", text: "No one’s out from today on.", action_text: "Add time off", action_path: new_calendar_time_off_path %>
+<% end %>

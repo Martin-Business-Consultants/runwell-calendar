@@ -1,0 +1,109 @@
+<%# locals: (schedule:, date:) %>
+<%# A day beside the calendar: who's out, what's due (and overdue, on today), the dates on it, what
+    closed, and how many open tasks each person has due, then a way to add time off on it. %>
+<% items = schedule.on(date) %>
+<% out = schedule.out_on(date) %>
+<% due = items.select { |item| item.task? && !item.done? } %>
+<% done = items.select(&:done?) %>
+<% dates = items.select { |item| item.kind == "date" } %>
+<% closed = items.select { |item| item.kind == "closed" } %>
+<% load = schedule.load_on(date) %>
+<section class="card calendar-panel" aria-label="<%= calendar_day_title(date) %>">
+  <header class="card__head">
+    <h3 class="card__title"><%= calendar_day_title(date) %></h3>
+    <p class="card__hint">
+      <% if date == Date.current %>
+        Today
+      <% elsif date < Date.current %>
+        <%= time_ago_in_words(date.to_time) %> ago
+      <% else %>
+        In <%= distance_of_time_in_words(Date.current.to_time, date.to_time) %>
+      <% end %>
+    </p>
+  </header>
+  <div class="card__content calendar-panel__body">
+    <section class="calendar-panel__section">
+      <h4 class="calendar-panel__heading">Out <span class="count"><%= out.size %></span></h4>
+      <% if out.any? %>
+        <ul class="calendar-panel__list">
+          <% out.each do |off| %>
+            <%# herb:key off.id %>
+            <li class="calendar-out">
+              <%= person_tag off.user %>
+              <span class="calendar-out__name"><%= off.user.display_name %></span>
+              <span class="calendar-out__span muted small"><%= off.span_text %><%= " · half day" if off.half_day? %></span>
+              <% if off.note.present? && off.note_visible_to?(Current.user) %>
+                <span class="calendar-out__note muted small"><%= off.note %></span>
+              <% end %>
+              <% if off.manageable_by?(Current.user) %>
+                <%= render "layouts/shared/delete_dialog", name: "#{off.user.display_name}’s time off (#{off.span_text})", path: calendar_time_off_path(off),
+                      message: "They show as in again for those days." %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="muted small">Everyone’s in.</p>
+      <% end %>
+    </section>
+
+    <% if date == Date.current && schedule.overdue.any? %>
+      <section class="calendar-panel__section">
+        <h4 class="calendar-panel__heading">Overdue <span class="count"><%= schedule.overdue.size %></span></h4>
+        <ul class="calendar-panel__list">
+          <%= render partial: "calendar/shared/task", collection: schedule.overdue.first(20), as: :task, locals: { with_due: true } %>
+        </ul>
+      </section>
+    <% end %>
+
+    <section class="calendar-panel__section">
+      <h4 class="calendar-panel__heading">Due <span class="count"><%= due.size %></span></h4>
+      <% if due.any? %>
+        <ul class="calendar-panel__list">
+          <%= render partial: "calendar/shared/item", collection: due, as: :item, locals: { compact: false } %>
+        </ul>
+      <% else %>
+        <p class="muted small">Nothing due<%= " with these filters" if schedule.filtered? %>.</p>
+      <% end %>
+    </section>
+
+    <% if dates.any? %>
+      <section class="calendar-panel__section">
+        <h4 class="calendar-panel__heading">Dates <span class="count"><%= dates.size %></span></h4>
+        <ul class="calendar-panel__list">
+          <%= render partial: "calendar/shared/item", collection: dates, as: :item, locals: { compact: false } %>
+        </ul>
+      </section>
+    <% end %>
+
+    <% if done.any? || closed.any? %>
+      <section class="calendar-panel__section">
+        <h4 class="calendar-panel__heading">Done <span class="count"><%= done.size + closed.size %></span></h4>
+        <ul class="calendar-panel__list">
+          <%= render partial: "calendar/shared/item", collection: closed + done, as: :item, locals: { compact: false } %>
+        </ul>
+      </section>
+    <% end %>
+
+    <% if load.any? %>
+      <section class="calendar-panel__section">
+        <h4 class="calendar-panel__heading">Open <%= term(:task, count: 2).downcase %> due, by person</h4>
+        <ul class="calendar-panel__list calendar-load">
+          <% load.each do |person, count| %>
+            <%# herb:key person.id %>
+            <li class="calendar-load__row">
+              <%= person_tag person %>
+              <span class="calendar-load__name"><%= person.display_name %></span>
+              <span class="count"><%= count %></span>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+
+    <details class="record-add calendar-panel__add">
+      <summary class="btn btn--secondary btn--sm"><%= icon_tag "add" %> Add time off</summary>
+      <%= render "calendar/time_offs/form", time_off: Calendar::TimeOff.new(user: Current.user.person, starts_on: date, ends_on: date), compact: true %>
+    </details>
+  </div>
+</section>
