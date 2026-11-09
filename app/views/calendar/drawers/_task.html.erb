@@ -1,10 +1,11 @@
 <%# locals: (task:) %>
-<%# A task in the drawer: dragged by any of it onto a day; its title opens it in the side panel, and
-    its owners change in place (the core's owner picker). %>
+<%# A task in the drawer: dragged by any of it onto a day, as the Tasks board's cards are (the grip
+    shows it can; its title link is never dragged itself, so Safari moves the task, not a link); the
+    title opens it in the side panel, and its owners change in place (the core's owner picker). %>
 <li class="calendar-drawer__task" draggable="true" data-drag-and-drop-target="item" data-id="<%= task.id %>">
-  <%= icon_tag "move", class: "calendar-drawer__grip" %>
+  <%= icon_tag "grip", class: "calendar-drawer__grip" %>
   <div class="calendar-drawer__main">
-    <%= side_panel_link_to task, task.title, class: "calendar-drawer__title" %>
+    <%= side_panel_link_to task, task.title, class: "calendar-drawer__title", draggable: "false" %>
     <span class="calendar-drawer__detail">
       <%= [ task.work&.title, task.client&.name ].compact.uniq.join(" · ") %>
       <% if task.due_on %>

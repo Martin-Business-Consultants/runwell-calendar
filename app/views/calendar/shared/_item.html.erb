@@ -3,7 +3,8 @@
     to another day), someone out, a date field (a launch), another plugin's (a meeting) or a piece
     of work closed (each opens its record). compact: a month cell's one line; otherwise with who's
     on it and where it sits. avatars: who's on it even on one line (the week, which has the room). A
-    clash marks it: someone on it is out. %>
+    clash marks it: someone on it is out. An open task drags the way the Tasks board's cards do: the
+    whole item is what moves (the grip shows it can), and its link is never dragged itself. %>
 <% draggable = item.task? && !item.done? %>
 <li class="<%= class_names("calendar-item", "calendar-item--#{item.kind.dasherize}", "calendar-item--overdue": item.overdue?, "calendar-item--done": item.done?,
       "calendar-item--clash": item.clash?, "calendar-item--compact": compact) %>"<% if draggable %> draggable="true" data-drag-and-drop-target="item" data-id="<%= item.record.id %>"<% end %>>
@@ -14,8 +15,12 @@
       <span class="calendar-item__detail"><%= item.detail %></span>
     </span>
   <% elsif item.task? %>
-    <%= side_panel_link_to item.record, class: "calendar-item__main" do %>
-      <span class="calendar-item__mark" aria-hidden="true"></span>
+    <%= side_panel_link_to item.record, class: "calendar-item__main", draggable: (draggable ? "false" : nil) do %>
+      <% if draggable %>
+        <%= icon_tag "grip", class: "calendar-item__grip" %>
+      <% else %>
+        <span class="calendar-item__mark" aria-hidden="true"></span>
+      <% end %>
       <span class="calendar-item__title"><%= item.title %></span>
       <% unless compact %>
         <span class="calendar-item__detail"><%= item.detail %></span>

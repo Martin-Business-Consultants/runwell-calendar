@@ -61,7 +61,7 @@ someone on it is out?". Calendar links are made only by their person, in the bro
 ## Installing
 
 Settings > Plugins, add `Martin-Business-Consultants/runwell-calendar`, then switch it on. Needs
-Runwell 5.7.1 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
+Runwell 5.7.3 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
 the core's records by id; removing it leaves Runwell as it was.
 
 ## Developing
