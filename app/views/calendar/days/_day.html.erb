@@ -58,13 +58,16 @@
 
     <section class="calendar-panel__section">
       <h4 class="calendar-panel__heading">Due <span class="count"><%= due.size %></span></h4>
-      <% if due.any? %>
-        <ul class="calendar-panel__list">
+      <%# Every task due this day, in its order: dragged up or down to rearrange them, or dropped here
+          from the calendar or the drawer (the same drop as the day's cell). %>
+      <div class="calendar-panel__drop" data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
+        <ul class="calendar-panel__list" data-drag-drop-item-container>
           <%= render partial: "calendar/shared/item", collection: due, as: :item, locals: { compact: false } %>
         </ul>
-      <% else %>
-        <p class="muted small">Nothing due<%= " with these filters" if schedule.filtered? %>.</p>
-      <% end %>
+        <% if due.none? %>
+          <p class="muted small">Nothing due<%= " with these filters" if schedule.filtered? %>. Drag a <%= term(:task).downcase %> here to make it due this day.</p>
+        <% end %>
+      </div>
     </section>
 
     <% if dates.any? %>

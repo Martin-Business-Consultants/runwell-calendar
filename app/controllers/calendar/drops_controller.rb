@@ -1,6 +1,7 @@
 module Calendar
   # An open task dragged to another day on the calendar (from a day or the tasks drawer): due that
-  # day now; dragged into the drawer, it has no date again. Through the task's own update (its
+  # day now, where it was dropped among that day's tasks (before: the one it now sits above), which
+  # is also how a day's tasks are rearranged; dragged into the drawer, it has no date again. Through the task's own update (its
   # history and live refreshes are the core's). The page refreshes in place.
   class DropsController < ApplicationController
     allow_staff
@@ -10,7 +11,9 @@ module Calendar
     def create
       task = Task.find(params[:task_id])
       date = date_param(:date) or raise ActiveRecord::RecordNotFound
-      task.update(due_on: date) unless task.status == "done"
+      if task.status != "done" && task.update(due_on: date)
+        Calendar::Placement.place!(task, before: params[:before])
+      end
 
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.refresh(request_id: nil) }

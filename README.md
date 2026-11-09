@@ -20,7 +20,9 @@ Calendar in the nav opens the month; switch to a week or a four-week agenda. Pic
 panel: who's out, what's due (and overdue, on today), its dates, what closed, how many open tasks
 each person has due, and Add time off for that day. Hide the panel (`]`) for a wider calendar, and
 switch Weekends off for a five-day grid (a Friday then says what's on the weekend); both are
-remembered. Drag an open task to another day to move its due date.
+remembered. Drag an open task to another day to move its due date, dropping it where it should
+sit among that day's tasks; drag tasks up and down a day (or its panel's Due list, which shows them
+all) to rearrange them. The order is kept.
 
 **Tasks** in the bar (or `r`) opens a drawer along the bottom: on the left its own search and
 filters (due: no date, the default, overdue, the next two weeks or any; who's on it, including

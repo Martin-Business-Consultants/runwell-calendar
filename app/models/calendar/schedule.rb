@@ -35,9 +35,14 @@ module Calendar
 
     def filtered? = person || client || work || show != "all" || query
 
+    # Tasks on a day keep the order they were arranged in (Calendar::Placement), the rest after,
+    # done ones last.
     def items
-      @items ||= (task_items + time_off_items + date_items + plugin_items + closed_items)
-        .sort_by { [ it.date, KIND_ORDER.index(it.kind), it.done? ? 1 : 0, it.title.downcase ] }
+      @items ||= begin
+        all = task_items + time_off_items + date_items + plugin_items + closed_items
+        positions = Calendar::Placement.positions_for(all.select(&:task?).map { it.record.id })
+        all.sort_by { [ it.date, KIND_ORDER.index(it.kind), it.done? ? 1 : 0, (it.task? && positions[it.record.id]) || Float::INFINITY, it.title.downcase ] }
+      end
     end
 
     def by_day = @by_day ||= items.group_by(&:date)

@@ -1,14 +1,15 @@
 <%# locals: (date:, schedule:, period:, day:, limit: nil, panel: nil) %>
 <%# One day in the grid: its number (which opens the day), a marker when someone is out as their
     task or date lands, and what's on it. It's a keyboard item (j / k move through the days, Enter
-    opens the one you're on) and a drop target: an open task dragged here is due this day. With
+    opens the one you're on) and a drop target: an open task dragged here is due this day, where it
+    was let go among the day's tasks, and dragging within the day rearranges them. With
     weekends off, a Friday says what's on the weekend after it. %>
 <% items = schedule.on(date) %>
 <% shown = limit ? items.first(limit) : items %>
 <% weekend = !period.weekends? && date.friday? ? [ date + 1, date + 2 ].sum { |weekend_day| schedule.on(weekend_day).size } : 0 %>
 <div class="<%= class_names("calendar-day", "calendar-day--outside": period.outside?(date), "calendar-day--today": date == Date.current,
       "calendar-day--selected": panel && date == day, "calendar-day--weekend": Calendar::Period.weekend?(date), "calendar-day--past": date < Date.current) %>"
-  data-filter-target="item" data-drag-and-drop-target="container" data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
+  data-filter-target="item" data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
   <div class="calendar-day__head">
     <%= calendar_day_link_to date.day, date, panel: panel, class: "calendar-day__number", aria: { label: calendar_day_title(date) } %>
     <% if items.any?(&:clash?) %>

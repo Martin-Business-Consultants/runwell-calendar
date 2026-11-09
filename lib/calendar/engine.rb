@@ -21,6 +21,7 @@ module Calendar
 
     initializer "calendar.models" do
       ActiveSupport.on_load(:runwell_user) { has_many :calendar_time_offs, class_name: "Calendar::TimeOff", dependent: :delete_all }
+      ActiveSupport.on_load(:runwell_task) { has_one :calendar_placement, class_name: "Calendar::Placement", dependent: :delete }
     end
 
     initializer "calendar.helpers" do
