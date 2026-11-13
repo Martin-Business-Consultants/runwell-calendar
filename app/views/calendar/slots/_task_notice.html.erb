@@ -3,11 +3,9 @@
     so a due date or an assignment that lands on someone's time off shows where it's set. %>
 <% offs = task.due_on && Calendar::TaskRules.movable?(task) ? Calendar::TimeOff.overlapping(task.due_on..task.due_on).where(user_id: task.owners.map(&:id)).includes(:user).to_a : [] %>
 <% if offs.any? %>
-  <p class="calendar-notice" role="note">
-    <%= icon_tag "bell-alert", class: "calendar-notice__icon" %>
-    <span>
-      <%= offs.map { |off| "#{off.user.display_name} is out #{off.span_text}" }.to_sentence %>, when this is due.
-      <%= link_to "See the day", calendar_page_path(date: task.due_on.iso8601, day: task.due_on.iso8601), data: { turbo_frame: "_top" } %>
-    </span>
-  </p>
+  <% notice = capture do %>
+    <%= offs.map { |off| "#{off.user.display_name} is out #{off.span_text}" }.to_sentence %>, when this is due.
+    <%= link_to "See the day", calendar_page_path(date: task.due_on.iso8601, day: task.due_on.iso8601), data: { turbo_frame: "_top" } %>
+  <% end %>
+  <%= ui :alert, variant: :warning, description: notice, class: "calendar-notice", role: "note" %>
 <% end %>

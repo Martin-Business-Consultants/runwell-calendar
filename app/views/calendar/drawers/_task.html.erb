@@ -15,7 +15,7 @@
     </span>
   </div>
   <% if Calendar::TaskRules.overdue?(task) %>
-    <span class="badge badge--danger">Overdue</span>
+    <%= ui :badge, variant: :destructive, content: "Overdue" %>
   <% end %>
   <span class="calendar-drawer__owner"><%= render "tasks/owner_picker", task: task %></span>
 </li>

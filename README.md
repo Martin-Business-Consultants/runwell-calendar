@@ -47,7 +47,7 @@ A task due on a day someone on it is out says so under its title, on its page an
 panel. In the client portal, home shows what's coming up for the client in the next three months
 from the date fields shown to clients (a launch).
 
-Filter (comboboxes, with a filter box for long lists) by person (anyone, me, or someone), client, work and what to show (everything, open tasks,
+Filter (pills above the calendar, with a search box in long lists) by person (anyone, me, or someone), client, work and what to show (everything, open tasks,
 overdue, done tasks, time off, dates, closed work), and search: a fuzzy search across clients,
 work, tasks and people (it forgives typos and partial words: "wbsite" finds Website rebuild).
 Every filter is in the address, so a filtered calendar is a link to bookmark or share.
@@ -74,7 +74,7 @@ someone on it is out?". Calendar links are made only by their person, in the bro
 ## Installing
 
 Settings > Plugins, add `Martin-Business-Consultants/runwell-calendar`, then switch it on. Needs
-Runwell 5.8 or later. It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
+Runwell 6.0 or later (it's drawn with runeui and reads runeui's tokens). It keeps its own tables (`calendar_time_offs`, `calendar_feeds`) and reads
 the core's records by id; removing it leaves Runwell as it was.
 
 ## Developing

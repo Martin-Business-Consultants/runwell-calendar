@@ -54,6 +54,19 @@ Each one's rules live once, on a model; views, controllers and the JSON ask it, 
   `agent_exempt`; reads have a `.json.jbuilder` with `agent_ref` and a `summary`
 - Custom field values come through `CustomField.dates_between` (it honours who may see a field),
   never `CustomValue`
-- Views follow the core's ReActionView rules (strict locals, `herb:key` on loops, no inline CSS, no
-  partials inside `form_with`); CSS reads Runwell's tokens; no JavaScript of its own so far
+- Views are drawn with runeui (Runwell 6.0's UI kit: `ui :button`, `ui :card`, `ui :badge`,
+  `ui :filter`, `ui :toggle_group`, `ui :table`, `ui :alert`, `ui :empty`, `ui :page_header`,
+  `form.ui :field`…) and the core's contract helpers (`person_tag`, `icon_tag`, `date_input`,
+  `side_panel_link_to`, `index_toolbar`, `delete_dialog`, the `bulk_*` helpers, the
+  `drag-and-drop` and `copy-to-clipboard` controllers); nothing of the compatibility layer
+  (rune_ui's helpers and classes: `btn`, `card__*`, `field__*`, `list-row`, `badge--*`, `count`,
+  `muted`, `visually-hidden`…), which goes in Runwell 7.0. Elements with computed attributes are
+  built by a helper or a `ui` partial, never `link_to` / `tag.*` with computed hashes in a template
+  (Herb's engine mangles them). They follow the core's ReActionView rules (strict locals,
+  `herb:key` on loops, no inline CSS, no partials inside `form_with`)
+- CSS reads runeui's tokens only (shadcn's names, `--ui-*`, and Runwell's `--faint-foreground`,
+  `--brand-tint`), and the stylesheet starts with `/* tokens: runeui */` so the core serves it as
+  it is: `--primary` is the brand, `--accent` shadcn's quiet hover fill (`--ui-ghost-hover` here),
+  `--ui-focus-ring` focus, `--ui-radius-*` corners, `color-mix(in oklab, …)`, rems; no `.dark`
+  selectors. No JavaScript of its own so far
 - Write for anyone running something: no one industry's words

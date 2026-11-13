@@ -1,0 +1,18 @@
+<%# locals: (time_off:, title:, description:) %>
+<%# Adding or changing time off on a page of its own: the form beside how it works. %>
+<div class="calendar-page">
+  <%= ui :page_header, title: title, description: description, class: "calendar-page__header" %>
+  <div class="calendar-page__main">
+    <%= ui :card do %>
+      <%= render "calendar/time_offs/form", time_off: time_off, compact: false %>
+    <% end %>
+  </div>
+  <aside class="calendar-page__aside">
+    <%= ui :card, title: "How it works", size: :sm do %>
+      <div class="calendar-prose">
+        <p>Anyone adds their own time off. Owners and managers can add and remove anyone’s. There’s no approval: it says who’s away.</p>
+        <p>A <%= term(:task).downcase %> due, or a date on a <%= term(:work).downcase %>, while someone on it is out is flagged on the calendar.</p>
+      </div>
+    <% end %>
+  </aside>
+</div>

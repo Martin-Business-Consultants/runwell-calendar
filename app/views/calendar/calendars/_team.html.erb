@@ -29,7 +29,7 @@
           <%= person_tag person %>
           <span class="calendar-team__name"><%= person.display_name %></span>
         <% else %>
-          <span class="calendar-team__name muted">Nobody yet</span>
+          <span class="calendar-team__name calendar-team__name--nobody">Nobody yet</span>
         <% end %>
       </div>
       <% days.each do |date| %>

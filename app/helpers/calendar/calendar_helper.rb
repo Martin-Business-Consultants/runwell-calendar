@@ -32,6 +32,18 @@ module Calendar
 
     def calendar_show_options = Calendar::Schedule::SHOWS.map { |value, text| [ text, value ] }
 
+    # The views (month, week, team, agenda, timeline) as links for ui :toggle_group, each keeping
+    # the filters.
+    def calendar_view_options
+      Calendar::Period::VIEWS.map { |view, label| [ label, view, { href: calendar_link(view: (view unless view == "month")) } ] }
+    end
+
+    # The query params a GET form on the calendar carries as hidden fields, so it changes only its
+    # own: every string param but the one named, or those starting with prefix (the drawer's tasks_).
+    def calendar_carried_params(except: nil, prefix: nil)
+      request.query_parameters.select { |name, value| value.is_a?(String) && name != except && !(prefix && name.start_with?(prefix)) }
+    end
+
     # The tasks drawer's choices: when they're due, and who's on them (nobody: not taken on yet).
     def calendar_drawer_due_options = Calendar::Drawer::DUES.map { |value, text| [ text, value ] }
 

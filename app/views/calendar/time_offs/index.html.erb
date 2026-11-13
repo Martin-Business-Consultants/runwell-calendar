@@ -1,46 +1,50 @@
 <%# Who's out from today on (Calendar::TimeOffsController#index), soonest first. %>
 <%= parent_page "Calendar", calendar_page_path %>
 <% content_for :index_filters do %>
-  <%= form_with url: calendar_time_offs_path, method: :get, class: "calendar-filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
-    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, class: "select--sm", aria: { label: "Person" }, data: { action: "change->form#submit", combobox_filter: "always" } %>
-  <% end %>
+  <%= ui :filter, param: :person, label: "Person", value: params[:person].presence || "anyone", any: false, search: true, options: calendar_person_options %>
 <% end %>
 <%= render "layouts/shared/index_toolbar", new_text: "Add time off", new_path: new_calendar_time_off_path %>
 
 <% if @time_offs.any? %>
-  <div class="table-wrap">
-    <table class="table calendar-time-off-table">
-      <thead>
-        <tr><th>Who</th><th>When</th><th>Note</th><th><span class="visually-hidden">Actions</span></th></tr>
-      </thead>
-      <tbody>
-        <% @time_offs.each do |off| %>
-          <%# herb:key off.id %>
-          <tr data-filter-target="item">
-            <td class="table__grow"><span class="calendar-out"><%= person_tag off.user %> <span><%= off.user.display_name %></span></span></td>
-            <td>
+  <%= ui :table, id: "calendar_time_offs", class: "calendar-time-off-table" do %>
+    <thead>
+      <tr>
+        <th data-grow>Who</th>
+        <th>When</th>
+        <th>Note</th>
+        <th data-align="end"><span class="ui-sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @time_offs.each do |off| %>
+        <%# herb:key off.id %>
+        <tr data-filter-target="item">
+          <td data-grow><span class="calendar-out"><%= person_tag off.user %> <span><%= off.user.display_name %></span></span></td>
+          <td>
+            <span class="calendar-time-off-table__when">
               <%= link_to calendar_page_path(date: off.starts_on.iso8601, day: off.starts_on.iso8601) do %>
                 <%= off.span_text %><% if off.half_day? %> · half day<% end %>
               <% end %>
               <% if off.state == "current" %>
-                <%= badge off.state_label, tone: :ok %>
+                <%= ui :badge, variant: :success, content: off.state_label %>
               <% end %>
-            </td>
-            <td class="muted"><%= off.note if off.note_visible_to?(Current.user) %></td>
-            <td>
-              <% if off.manageable_by?(Current.user) %>
-                <%= link_to edit_calendar_time_off_path(off), class: "icon-button", title: "Change this time off" do %>
-                  <%= icon_tag "pencil" %><span class="visually-hidden">Change <%= off.user.display_name %>’s time off</span>
-                <% end %>
+            </span>
+          </td>
+          <td data-truncate class="calendar-time-off-table__note"><%= off.note if off.note_visible_to?(Current.user) %></td>
+          <td data-align="end">
+            <% if off.manageable_by?(Current.user) %>
+              <span class="calendar-row-actions">
+                <%= ui :button, href: edit_calendar_time_off_path(off), variant: :ghost, size: :icon_sm, title: "Change this time off",
+                      aria: { label: "Change #{off.user.display_name}’s time off" }, content: icon_tag("pencil") %>
                 <%= render "layouts/shared/delete_dialog", name: "#{off.user.display_name}’s time off (#{off.span_text})", path: calendar_time_off_path(off),
                       message: "They show as in again for those days." %>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+              </span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  <% end %>
 <% else %>
-  <%= render "layouts/shared/empty", text: "No one’s out from today on.", action_text: "Add time off", action_path: new_calendar_time_off_path %>
+  <%= ui :empty, description: "No one’s out from today on.", action: ui(:button, href: new_calendar_time_off_path, variant: :outline, size: :sm, content: "Add time off") %>
 <% end %>

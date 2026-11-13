@@ -1,26 +1,3 @@
 <%# Changing time off on a page of its own (the pencil beside it, on the day or in Time off). %>
 <%= parent_page "Calendar", calendar_page_path %>
-<section class="record-page">
-  <header class="record-page__header">
-    <div class="record-page__heading">
-      <h1 class="page-title"><%= @page_title %></h1>
-      <p class="record-page__description">The days, half a day or the note. Remove it from the day, or from Time off.</p>
-    </div>
-  </header>
-  <div class="record-page__main">
-    <section class="card">
-      <div class="card__content">
-        <%= render "calendar/time_offs/form", time_off: @time_off, compact: false %>
-      </div>
-    </section>
-  </div>
-  <aside class="record-page__aside">
-    <section class="card card--sm">
-      <header class="card__head"><h2 class="card__title">How it works</h2></header>
-      <div class="card__content">
-        <p class="muted small">Anyone adds their own time off. Owners and managers can add and remove anyone’s. There’s no approval: it says who’s away.</p>
-        <p class="muted small">A <%= term(:task).downcase %> due, or a date on a <%= term(:work).downcase %>, while someone on it is out is flagged on the calendar.</p>
-      </div>
-    </section>
-  </aside>
-</section>
+<%= render "calendar/time_offs/page", time_off: @time_off, title: @page_title, description: "The days, half a day or the note. Remove it from the day, or from Time off." %>

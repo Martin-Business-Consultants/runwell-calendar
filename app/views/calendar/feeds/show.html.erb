@@ -3,43 +3,37 @@
     calendar's private link, read so Runwell knows when they're busy (Calendar::BusyFeed). %>
 <% busy = Calendar::BusyFeed.find_by(user: Current.user.person) %>
 <%= parent_page "Calendar", calendar_page_path %>
-<section class="record-page">
-  <header class="record-page__header">
-    <div class="record-page__heading">
-      <h1 class="page-title">Subscribe</h1>
-      <p class="record-page__description">See Runwell’s dates in Google Calendar, Outlook or Apple’s Calendar.</p>
-    </div>
-  </header>
-  <div class="record-page__main">
-    <section class="card">
-      <header class="card__head">
-        <h2 class="card__title">Your calendar link</h2>
-        <p class="card__hint">Your open <%= term(:task, count: 2).downcase %> with a due date, everyone’s time off, and every date you can see, from a month back to six months ahead. Calendar apps check it every few hours.</p>
-      </header>
-      <div class="card__content stack">
+<div class="calendar-page">
+  <%= ui :page_header, title: "Subscribe", description: "See Runwell’s dates in Google Calendar, Outlook or Apple’s Calendar.", class: "calendar-page__header" %>
+  <div class="calendar-page__main">
+    <%= ui :card, title: "Your calendar link",
+          description: "Your open #{term(:task, count: 2).downcase} with a due date, everyone’s time off, and every date you can see, from a month back to six months ahead. Calendar apps check it every few hours." do %>
+      <div class="calendar-stack">
         <% if @feed&.token %>
-          <%= copy_field calendar_subscription_url(token: @feed.token, format: "ics", host: Runwell.host, protocol: Runwell.protocol) %>
-          <p class="muted small">Copy it now: it’s shown only once. Anyone with it can read these dates, so keep it to yourself.</p>
+          <% link = calendar_subscription_url(token: @feed.token, format: "ics", host: Runwell.host, protocol: Runwell.protocol) %>
+          <div class="calendar-copy">
+            <code title="<%= link %>"><%= link %></code>
+            <%= ui :button, type: :button, variant: :outline, size: :sm, content: safe_join([ icon_tag("copy-paste"), tag.span("Copy") ]),
+                  data: { controller: "copy-to-clipboard", copy_to_clipboard_content_value: link, copy_to_clipboard_success_class: "calendar-copied", action: "copy-to-clipboard#copy" } %>
+          </div>
+          <p class="calendar-quiet">Copy it now: it’s shown only once. Anyone with it can read these dates, so keep it to yourself.</p>
         <% elsif @feed %>
           <p>Your link is on<%= ", last read #{time_ago_in_words(@feed.last_fetched_at)} ago" if @feed.last_fetched_at %>. It isn’t shown again; reset it for a new one (the old one stops working).</p>
         <% else %>
-          <p class="muted">You don’t have a link yet.</p>
+          <p class="calendar-quiet">You don’t have a link yet.</p>
         <% end %>
-        <div class="button-row">
-          <%= button_to(@feed ? "Reset link" : "Make my link", calendar_feed_path, class: "btn btn--primary btn--sm") %>
+        <div class="calendar-actions">
+          <%= button_to(@feed ? "Reset link" : "Make my link", calendar_feed_path, class: "ui-button", data: { variant: "default", size: "sm" }) %>
           <% if @feed %>
-            <%= button_to "Turn off", calendar_feed_path, method: :delete, class: "btn btn--ghost btn--sm" %>
+            <%= button_to "Turn off", calendar_feed_path, method: :delete, class: "ui-button", data: { variant: "ghost", size: "sm" } %>
           <% end %>
         </div>
       </div>
-    </section>
+    <% end %>
 
-    <section class="card">
-      <header class="card__head">
-        <h2 class="card__title">Your busy time</h2>
-        <p class="card__hint">Connect your own calendar so Runwell knows when you’re busy: an all-day event counts as out (anything of yours due then is flagged), meetings show as busy. Only you see what they’re called; everyone else sees “Busy”. Read each night, from two weeks back to three months ahead.</p>
-      </header>
-      <div class="card__content stack">
+    <%= ui :card, title: "Your busy time",
+          description: "Connect your own calendar so Runwell knows when you’re busy: an all-day event counts as out (anything of yours due then is flagged), meetings show as busy. Only you see what they’re called; everyone else sees “Busy”. Read each night, from two weeks back to three months ahead." do %>
+      <div class="calendar-stack">
         <% if busy %>
           <p>
             Connected<%= ", read #{time_ago_in_words(busy.synced_at)} ago" if busy.synced_at %>.
@@ -48,30 +42,28 @@
             <% end %>
           </p>
         <% end %>
-        <%= form_with url: calendar_busy_feed_path, method: :patch, scope: :busy_feed, class: "calendar-busy-form" do |form| %>
-          <label class="field">
-            <span class="field__label">Your calendar’s private link</span>
+        <%= form_with url: calendar_busy_feed_path, method: :patch, scope: :busy_feed, class: "calendar-form" do |form| %>
+          <%= form.ui :field, :url, label: "Your calendar’s private link",
+                description: "Google Calendar: your calendar’s Settings, “Secret address in iCal format”. Outlook: Settings, Calendar, Shared calendars, Publish a calendar, ICS link." do %>
             <%= form.url_field :url, placeholder: "https://calendar.google.com/calendar/ical/…/private-…/basic.ics", autocomplete: "off", required: true %>
-            <span class="field__hint">Google Calendar: your calendar’s Settings, “Secret address in iCal format”. Outlook: Settings, Calendar, Shared calendars, Publish a calendar, ICS link.</span>
-          </label>
-          <div class="button-row">
-            <button type="submit" class="btn btn--primary btn--sm"><%= busy ? "Replace the link" : "Connect" %></button>
+          <% end %>
+          <div class="calendar-actions">
+            <%= ui :button, type: :submit, size: :sm, content: (busy ? "Replace the link" : "Connect") %>
           </div>
         <% end %>
         <% if busy %>
-          <%= button_to "Disconnect", calendar_busy_feed_path, method: :delete, class: "btn btn--ghost btn--sm" %>
+          <%= button_to "Disconnect", calendar_busy_feed_path, method: :delete, class: "ui-button", data: { variant: "ghost", size: "sm" } %>
         <% end %>
       </div>
-    </section>
+    <% end %>
   </div>
-  <aside class="record-page__aside">
-    <section class="card card--sm">
-      <header class="card__head"><h2 class="card__title">Adding it</h2></header>
-      <div class="card__content">
-        <p class="muted small"><strong>Google Calendar:</strong> Other calendars, +, From URL.</p>
-        <p class="muted small"><strong>Outlook:</strong> Add calendar, Subscribe from web.</p>
-        <p class="muted small"><strong>Apple Calendar:</strong> File, New Calendar Subscription.</p>
+  <aside class="calendar-page__aside">
+    <%= ui :card, title: "Adding it", size: :sm do %>
+      <div class="calendar-prose">
+        <p><strong>Google Calendar:</strong> Other calendars, +, From URL.</p>
+        <p><strong>Outlook:</strong> Add calendar, Subscribe from web.</p>
+        <p><strong>Apple Calendar:</strong> File, New Calendar Subscription.</p>
       </div>
-    </section>
+    <% end %>
   </aside>
-</section>
+</div>

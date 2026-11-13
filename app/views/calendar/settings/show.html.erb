@@ -3,19 +3,18 @@
 <%# The calendar's settings (Calendar::SettingsController): the workload limit, the Monday
     look-ahead, and holidays (a public holiday calendar to follow, and days added by hand). %>
 <div class="settings-page">
-  <%= form_with model: @setting, url: calendar_settings_path, method: :patch, scope: :setting, class: "settings-form", data: { controller: "form" } do |form| %>
+  <%= form_with model: @setting, url: calendar_settings_path, method: :patch, scope: :setting, class: "calendar-settings-form", data: { controller: "form" } do |form| %>
     <section class="settings-section">
       <header class="settings-section__head">
         <h2>Workload</h2>
         <p class="settings-section__description">How many open <%= term(:task, count: 2).downcase %> due in one day is too many for one person. Over it, the calendar flags their day.</p>
       </header>
       <% if @setting.errors.any? %>
-        <div class="alert alert--danger" role="alert"><%= @setting.errors.full_messages.to_sentence %>.</div>
+        <%= ui :alert, variant: :destructive, description: "#{@setting.errors.full_messages.to_sentence}.", role: "alert" %>
       <% end %>
-      <label class="field">
-        <span class="field__label">More than this many in a day</span>
+      <%= form.ui :field, :workload_limit, label: "More than this many in a day" do %>
         <%= form.number_field :workload_limit, min: 1, max: 50, class: "calendar-settings__number", data: { action: "change->form#submit" } %>
-      </label>
+      <% end %>
     </section>
 
     <section class="settings-section">
@@ -31,20 +30,17 @@
         <h2>Holidays</h2>
         <p class="settings-section__description">Days off for everyone: on a holiday everyone counts as out, so anything due then is flagged. Follow a public holiday calendar (its .ics link, read each night), add days by hand below, or both.</p>
       </header>
-      <label class="field">
-        <span class="field__label">Public holiday calendar</span>
+      <% holidays_hint = if @setting.holidays_error.present?
+                           "Couldn’t read it: #{@setting.holidays_error}."
+                         elsif @setting.holidays_synced_at
+                           "Read #{time_ago_in_words(@setting.holidays_synced_at)} ago."
+                         else
+                           "Google offers one per country: in Google Calendar, Other calendars, Browse calendars of interest, then the calendar’s Settings, “Public address in iCal format”."
+                         end %>
+      <%= form.ui :field, :holidays_url, label: "Public holiday calendar", description: holidays_hint do %>
         <%= form.url_field :holidays_url, placeholder: "https://calendar.google.com/…/basic.ics", autocomplete: "off" %>
-        <span class="field__hint">
-          <% if @setting.holidays_error.present? %>
-            Couldn’t read it: <%= @setting.holidays_error %>.
-          <% elsif @setting.holidays_synced_at %>
-            Read <%= time_ago_in_words(@setting.holidays_synced_at) %> ago.
-          <% else %>
-            Google offers one per country: in Google Calendar, Other calendars, Browse calendars of interest, then the calendar’s Settings, “Public address in iCal format”.
-          <% end %>
-        </span>
-      </label>
-      <div class="button-row"><button type="submit" class="btn btn--secondary btn--sm">Save</button></div>
+      <% end %>
+      <div class="calendar-actions"><%= ui :button, type: :submit, variant: :outline, size: :sm, content: "Save" %></div>
     </section>
   <% end %>
 
@@ -53,16 +49,16 @@
       <h3>Coming up</h3>
     </header>
     <% if @holidays.any? %>
-      <ul class="settings-list calendar-holidays">
+      <ul class="calendar-holidays">
         <% @holidays.each do |holiday| %>
           <%# herb:key holiday.id %>
-          <li class="list-row">
-            <div class="list-row__content">
-              <p class="list-row__title"><%= holiday.name %></p>
-              <p class="list-row__desc"><%= l(holiday.date, format: "%A, %B %-d, %Y") %><%= " · from the holiday calendar" unless holiday.manual? %></p>
+          <li class="calendar-holidays__row">
+            <div class="calendar-holidays__content">
+              <p class="calendar-holidays__name"><%= holiday.name %></p>
+              <p class="calendar-holidays__date"><%= l(holiday.date, format: "%A, %B %-d, %Y") %><%= " · from the holiday calendar" unless holiday.manual? %></p>
             </div>
             <% if holiday.manual? %>
-              <div class="list-row__actions">
+              <div class="calendar-holidays__actions">
                 <%= render "layouts/shared/delete_dialog", name: holiday.name, path: calendar_holiday_path(holiday), message: "It stops being a day off for everyone." %>
               </div>
             <% end %>
@@ -70,12 +66,12 @@
         <% end %>
       </ul>
     <% else %>
-      <p class="muted">No holidays coming up.</p>
+      <%= ui :empty, size: :sm, description: "No holidays coming up." %>
     <% end %>
     <%= form_with url: calendar_holidays_path, scope: :holiday, class: "calendar-holidays__add", namespace: "holiday" do |form| %>
       <%= date_input form, :date, required: true, aria: { label: "Date" } %>
       <%= form.text_field :name, required: true, maxlength: 80, placeholder: "What it is (Office closed)", autocomplete: "off", aria: { label: "Name" } %>
-      <button type="submit" class="btn btn--secondary btn--sm"><%= icon_tag "add" %> <span>Add a holiday</span></button>
+      <%= ui :button, type: :submit, variant: :outline, size: :sm, content: safe_join([ icon_tag("add"), tag.span("Add a holiday") ]) %>
     <% end %>
   </section>
 </div>

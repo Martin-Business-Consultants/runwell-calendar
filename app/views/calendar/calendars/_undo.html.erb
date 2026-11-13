@@ -4,7 +4,7 @@
 <div class="calendar-undo" role="status">
   <%= icon_tag "check", class: "calendar-undo__icon" %>
   <span class="calendar-undo__text"><%= undo["text"] %></span>
-  <%= button_to calendar_undo_path, params: { token: undo["token"] }, class: "btn btn--secondary btn--sm calendar-undo__button", form_class: "calendar-undo__form", data: { keys: "mod+z" } do %>
+  <%= button_to calendar_undo_path, params: { token: undo["token"] }, class: "ui-button calendar-undo__button", form_class: "calendar-undo__form", data: { variant: "outline", size: "sm", keys: "mod+z" } do %>
     <%= icon_tag "refresh" %> <span>Undo</span>
   <% end %>
 </div>

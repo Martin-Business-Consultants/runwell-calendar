@@ -13,25 +13,14 @@
 <% dates = items.select(&:date?) %>
 <% closed = items.select(&:closed?) %>
 <% load = schedule.load_on(date) %>
-<section class="card calendar-panel" aria-label="<%= calendar_day_title(date) %>">
-  <header class="card__head">
-    <h3 class="card__title"><%= calendar_day_title(date) %></h3>
-    <p class="card__hint">
-      <% if date == Date.current %>
-        Today
-      <% elsif date < Date.current %>
-        <%= time_ago_in_words(date.to_time) %> ago
-      <% else %>
-        In <%= distance_of_time_in_words(Date.current.to_time, date.to_time) %>
-      <% end %>
-    </p>
-  </header>
-  <div class="card__content calendar-panel__body">
+<% when_text = if date == Date.current then "Today" elsif date < Date.current then "#{time_ago_in_words(date.to_time)} ago" else "In #{distance_of_time_in_words(Date.current.to_time, date.to_time)}" end %>
+<%= ui :card, title: tag.h3(calendar_day_title(date), class: "calendar-panel__title"), description: when_text, class: "calendar-panel", role: "region", aria: { label: calendar_day_title(date) } do %>
+  <div class="calendar-panel__body">
     <% if holidays.any? %>
       <p class="calendar-panel__holiday"><%= icon_tag "calendar" %> <%= holidays.map(&:name).to_sentence %>: everyone’s off.</p>
     <% end %>
     <section class="calendar-panel__section">
-      <h4 class="calendar-panel__heading">Out <span class="count"><%= out.size + busy_out.size %></span></h4>
+      <h4 class="calendar-panel__heading">Out <%= ui :badge, variant: :secondary, content: out.size + busy_out.size %></h4>
       <% if busy_out.any? %>
         <ul class="calendar-panel__list">
           <% busy_out.each do |event| %>
@@ -39,7 +28,7 @@
             <li class="calendar-out">
               <%= person_tag event.user %>
               <span class="calendar-out__name"><%= event.user.display_name %></span>
-              <span class="calendar-out__span muted small">busy all day · <%= event.title_for(Current.user) %></span>
+              <span class="calendar-out__span">busy all day · <%= event.title_for(Current.user) %></span>
             </li>
           <% end %>
         </ul>
@@ -51,14 +40,13 @@
             <li class="calendar-out">
               <%= person_tag off.user %>
               <span class="calendar-out__name"><%= off.user.display_name %></span>
-              <span class="calendar-out__span muted small"><%= off.span_text %><%= " · half day" if off.half_day? %></span>
+              <span class="calendar-out__span"><%= off.span_text %><%= " · half day" if off.half_day? %></span>
               <% if off.note.present? && off.note_visible_to?(Current.user) %>
-                <span class="calendar-out__note muted small"><%= off.note %></span>
+                <span class="calendar-out__note"><%= off.note %></span>
               <% end %>
               <% if off.manageable_by?(Current.user) %>
-                <%= link_to edit_calendar_time_off_path(off), class: "icon-button calendar-out__edit", title: "Change this time off", data: { turbo_frame: "_top" } do %>
-                  <%= icon_tag "pencil" %><span class="visually-hidden">Change <%= off.user.display_name %>’s time off</span>
-                <% end %>
+                <%= ui :button, href: edit_calendar_time_off_path(off), variant: :ghost, size: :icon_sm, class: "calendar-out__edit", title: "Change this time off",
+                      aria: { label: "Change #{off.user.display_name}’s time off" }, data: { turbo_frame: "_top" }, content: icon_tag("pencil") %>
                 <%= render "layouts/shared/delete_dialog", name: "#{off.user.display_name}’s time off (#{off.span_text})", path: calendar_time_off_path(off),
                       message: "They show as in again for those days." %>
               <% end %>
@@ -66,7 +54,7 @@
           <% end %>
         </ul>
       <% elsif busy_out.none? %>
-        <p class="muted small"><%= holidays.any? ? "Everyone’s off." : "Everyone’s in." %></p>
+        <p class="calendar-panel__quiet"><%= holidays.any? ? "Everyone’s off." : "Everyone’s in." %></p>
       <% end %>
     </section>
 
@@ -75,7 +63,7 @@
       <details class="calendar-panel__section calendar-overdue">
         <summary class="calendar-panel__heading calendar-overdue__summary">
           <%= icon_tag "caret-down", class: "calendar-overdue__caret" %>
-          Overdue <span class="count"><%= schedule.overdue.size %></span>
+          Overdue <%= ui :badge, variant: :secondary, content: schedule.overdue.size %>
         </summary>
         <ul class="calendar-panel__list">
           <%= render partial: "calendar/shared/task", collection: schedule.overdue.first(20), as: :task, locals: { with_due: true } %>
@@ -84,7 +72,7 @@
     <% end %>
 
     <section class="calendar-panel__section">
-      <h4 class="calendar-panel__heading">Due <span class="count"><%= due.size %></span></h4>
+      <h4 class="calendar-panel__heading">Due <%= ui :badge, variant: :secondary, content: due.size %></h4>
       <%# Every task due this day, in its order: dragged up or down to rearrange them, or dropped here
           from the calendar or the drawer (the same drop as the day's cell). %>
       <div class="calendar-panel__drop" data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
@@ -92,14 +80,14 @@
           <%= render partial: "calendar/shared/item", collection: due, as: :item, locals: { compact: false } %>
         </ul>
         <% if due.none? %>
-          <p class="muted small">Nothing due<%= " with these filters" if schedule.filtered? %>. Drag a <%= term(:task).downcase %> here to make it due this day.</p>
+          <p class="calendar-panel__quiet">Nothing due<%= " with these filters" if schedule.filtered? %>. Drag a <%= term(:task).downcase %> here to make it due this day.</p>
         <% end %>
       </div>
     </section>
 
     <% if dates.any? %>
       <section class="calendar-panel__section">
-        <h4 class="calendar-panel__heading">Dates <span class="count"><%= dates.size %></span></h4>
+        <h4 class="calendar-panel__heading">Dates <%= ui :badge, variant: :secondary, content: dates.size %></h4>
         <ul class="calendar-panel__list">
           <%= render partial: "calendar/shared/item", collection: dates, as: :item, locals: { compact: false } %>
         </ul>
@@ -108,7 +96,7 @@
 
     <% if done.any? || closed.any? %>
       <section class="calendar-panel__section">
-        <h4 class="calendar-panel__heading">Done <span class="count"><%= done.size + closed.size %></span></h4>
+        <h4 class="calendar-panel__heading">Done <%= ui :badge, variant: :secondary, content: done.size + closed.size %></h4>
         <ul class="calendar-panel__list">
           <%= render partial: "calendar/shared/item", collection: closed + done, as: :item, locals: { compact: false } %>
         </ul>
@@ -117,14 +105,14 @@
 
     <% if meetings.any? %>
       <section class="calendar-panel__section">
-        <h4 class="calendar-panel__heading">Meetings <span class="count"><%= meetings.size %></span></h4>
+        <h4 class="calendar-panel__heading">Meetings <%= ui :badge, variant: :secondary, content: meetings.size %></h4>
         <ul class="calendar-panel__list">
           <% meetings.each do |meeting| %>
             <%# herb:key meeting.id %>
             <li class="calendar-out">
               <%= person_tag meeting.user %>
-              <span class="calendar-out__span small"><%= meeting.time_text %></span>
-              <span class="calendar-out__span muted small"><%= meeting.title_for(Current.user) %></span>
+              <span class="calendar-out__span calendar-out__span--time"><%= meeting.time_text %></span>
+              <span class="calendar-out__span"><%= meeting.title_for(Current.user) %></span>
             </li>
           <% end %>
         </ul>
@@ -143,16 +131,16 @@
               <% if schedule.overloaded?(count) %>
                 <span class="calendar-load__over" title="More than <%= schedule.workload_limit %> in a day"><%= icon_tag "bell-alert" %> over the limit</span>
               <% end %>
-              <span class="count"><%= count %></span>
+              <%= ui :badge, variant: :secondary, content: count %>
             </li>
           <% end %>
         </ul>
       </section>
     <% end %>
 
-    <details class="record-add calendar-panel__add">
-      <summary class="btn btn--secondary btn--sm"><%= icon_tag "add" %> Add time off</summary>
+    <details class="calendar-panel__add">
+      <summary class="ui-button" data-variant="outline" data-size="sm"><%= icon_tag "add" %> Add time off</summary>
       <%= render "calendar/time_offs/form", time_off: Calendar::TimeOff.new(user: Current.user.person, starts_on: date, ends_on: date), compact: true %>
     </details>
   </div>
-</section>
+<% end %>

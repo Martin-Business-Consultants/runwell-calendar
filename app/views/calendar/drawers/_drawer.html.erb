@@ -8,41 +8,37 @@
   <header class="calendar-drawer__head">
     <h2 class="calendar-drawer__title-text">
       <%= term(:task, count: 2) %>
-      <span class="count"><%= drawer.total %></span>
+      <%= ui :badge, variant: :secondary, content: drawer.total %>
     </h2>
-    <p class="calendar-drawer__hint muted small">Drag one onto a day to set its date, or a day’s back here to clear it.</p>
-    <%= link_to calendar_link(drawer: Calendar::Preferences.off(:drawer)), class: "icon-button", title: "Hide (r)" do %>
-      <%= icon_tag "close" %><span class="visually-hidden">Hide the <%= term(:task, count: 2).downcase %></span>
-    <% end %>
+    <p class="calendar-drawer__hint">Drag one onto a day to set its date, or a day’s back here to clear it.</p>
+    <%= ui :button, href: calendar_link(drawer: Calendar::Preferences.off(:drawer)), variant: :ghost, size: :icon_sm, title: "Hide (r)",
+          aria: { label: "Hide the #{term(:task, count: 2).downcase}" }, content: icon_tag("close") %>
   </header>
 
   <div class="calendar-drawer__body">
     <%= form_with url: calendar_page_path, method: :get, class: "calendar-drawer__filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
-      <% request.query_parameters.reject { |name, value| name.start_with?("tasks_") || !value.is_a?(String) }.each do |name, value| %>
+      <% calendar_carried_params(prefix: "tasks_").each do |name, value| %>
         <%# herb:key name %>
         <input type="hidden" name="<%= name %>" value="<%= value %>">
       <% end %>
       <span class="calendar-search calendar-drawer__search">
         <%= icon_tag "search", class: "calendar-search__icon" %>
-        <input type="search" name="tasks_q" id="calendar_drawer_search" value="<%= params[:tasks_q] %>" class="calendar-search__input" placeholder="Search <%= term(:task, count: 2).downcase %>…"
-          autocomplete="off" aria-label="Search the <%= term(:task, count: 2).downcase %>" data-turbo-permanent data-1p-ignore="true" data-action="input->form#debouncedSubmit">
+        <%= ui :input, type: :search, name: "tasks_q", id: "calendar_drawer_search", value: params[:tasks_q], size: :sm, class: "calendar-search__input",
+              placeholder: "Search #{term(:task, count: 2).downcase}…", autocomplete: "off", aria: { label: "Search the #{term(:task, count: 2).downcase}" },
+              data: { turbo_permanent: true, "1p-ignore": "true", action: "input->form#debouncedSubmit" } %>
       </span>
-      <label class="field">
-        <span class="field__label">Due</span>
-        <%= form.select :tasks_due, calendar_drawer_due_options, { selected: drawer.due }, aria: { label: "Due" }, data: { action: "change->form#submit" } %>
-      </label>
-      <label class="field">
-        <span class="field__label">Who’s on it</span>
-        <%= form.select :tasks_owner, calendar_drawer_owner_options, { selected: params[:tasks_owner].presence || "anyone" }, aria: { label: "Who’s on it" }, data: { action: "change->form#submit" } %>
-      </label>
-      <label class="field">
-        <span class="field__label"><%= term(:client) %></span>
-        <%= form.select :tasks_client, calendar_client_options, { selected: params[:tasks_client].presence || "all" }, aria: { label: term(:client) }, data: { action: "change->form#submit" } %>
-      </label>
-      <label class="field">
-        <span class="field__label"><%= term(:work) %></span>
-        <%= form.select :tasks_work, calendar_work_options, { selected: params[:tasks_work].presence || "all" }, aria: { label: term(:work) }, data: { action: "change->form#submit" } %>
-      </label>
+      <%= form.ui :field, :tasks_due, label: "Due" do %>
+        <%= form.select :tasks_due, calendar_drawer_due_options, { selected: drawer.due }, data: { action: "change->form#submit" } %>
+      <% end %>
+      <%= form.ui :field, :tasks_owner, label: "Who’s on it" do %>
+        <%= form.select :tasks_owner, calendar_drawer_owner_options, { selected: params[:tasks_owner].presence || "anyone" }, data: { action: "change->form#submit" } %>
+      <% end %>
+      <%= form.ui :field, :tasks_client, label: term(:client) do %>
+        <%= form.select :tasks_client, calendar_client_options, { selected: params[:tasks_client].presence || "all" }, data: { action: "change->form#submit" } %>
+      <% end %>
+      <%= form.ui :field, :tasks_work, label: term(:work) do %>
+        <%= form.select :tasks_work, calendar_work_options, { selected: params[:tasks_work].presence || "all" }, data: { action: "change->form#submit" } %>
+      <% end %>
     <% end %>
 
     <div class="calendar-drawer__list" data-drag-and-drop-target="container" data-drag-and-drop-url="<%= calendar_drawer_drop_path(task_id: "__id__") %>">
@@ -51,11 +47,11 @@
           <%= render partial: "calendar/drawers/task", collection: drawer.tasks, as: :task %>
         </ul>
         <% if drawer.more? %>
-          <p class="muted small calendar-drawer__more">The first <%= drawer.tasks.size %> of <%= drawer.total %>. Search or filter to find the rest.</p>
+          <p class="calendar-drawer__more">The first <%= drawer.tasks.size %> of <%= drawer.total %>. Search or filter to find the rest.</p>
         <% end %>
       <% else %>
         <ul class="calendar-drawer__tasks" data-drag-drop-item-container></ul>
-        <p class="muted calendar-drawer__empty">No open <%= term(:task, count: 2).downcase %> here<%= drawer.due == "none" ? " without a date" : "" %>.</p>
+        <p class="calendar-drawer__empty">No open <%= term(:task, count: 2).downcase %> here<%= drawer.due == "none" ? " without a date" : "" %>.</p>
       <% end %>
     </div>
   </div>

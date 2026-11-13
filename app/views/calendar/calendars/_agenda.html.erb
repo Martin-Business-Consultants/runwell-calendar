@@ -10,7 +10,7 @@
     <details class="calendar-agenda__day calendar-agenda__day--overdue calendar-overdue">
       <summary class="calendar-agenda__date calendar-overdue__summary">
         <%= icon_tag "caret-down", class: "calendar-overdue__caret" %>
-        Overdue <span class="count"><%= schedule.overdue.size %></span>
+        Overdue <%= ui :badge, variant: :secondary, content: schedule.overdue.size %>
       </summary>
       <ul class="calendar-agenda__items">
         <%= render partial: "calendar/shared/task", collection: schedule.overdue, as: :task, locals: { with_due: true } %>
@@ -23,7 +23,7 @@
       data-drag-and-drop-target="container" data-drag-and-drop-sortable data-drag-and-drop-url="<%= calendar_day_drop_path(date: date.iso8601, task_id: "__id__") %>">
       <h3 class="calendar-agenda__date">
         <%= calendar_day_link_to calendar_day_title(date), date, panel: panel %>
-        <% if date == Date.current %><span class="badge badge--ok">Today</span><% end %>
+        <% if date == Date.current %><%= ui :badge, variant: :success, content: "Today" %><% end %>
       </h3>
       <ul class="calendar-agenda__items" data-drag-drop-item-container>
         <%= render partial: "calendar/shared/item", collection: schedule.on(date), as: :item, locals: { compact: false } %>
@@ -31,6 +31,6 @@
     </section>
   <% end %>
   <% if days.none? %>
-    <%= render "layouts/shared/empty", text: "Nothing dated in these four weeks#{" with these filters" if schedule.filtered?}.", action_text: nil, action_path: nil %>
+    <%= ui :empty, description: "Nothing dated in these four weeks#{" with these filters" if schedule.filtered?}." %>
   <% end %>
 </div>

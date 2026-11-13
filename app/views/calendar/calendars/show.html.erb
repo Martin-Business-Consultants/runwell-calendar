@@ -1,29 +1,28 @@
 <%# The calendar (Calendar::CalendarsController): filters and search over a month, week or agenda,
-    the day picked open beside it. The filters are one GET form of comboboxes (the core's, with a
-    filter box past a handful of choices) and the search, sent as each changes, so a filtered
-    calendar is a link; the search box is permanent across visits (data-turbo-permanent), so typing
-    keeps focus while the page refreshes under it. Weekends, the day panel and the tasks drawer
-    (open tasks to drag onto a day, with filters of their own, tasks_* params) are switched in the
-    bar and remembered. Picking a day loads only its panel (the calendar_day frame), or, with the
-    panel closed, opens it. %>
+    the day picked open beside it. Each filter is runeui's filter pill (a GET form of its own that
+    swaps one param and keeps the rest, with a search box in a long list), and the search a form of
+    its own sent as you type, so a filtered calendar is a link; the search box is permanent across
+    visits (data-turbo-permanent), so typing keeps focus while the page refreshes under it.
+    Weekends, the day panel and the tasks drawer (open tasks to drag onto a day, with filters of
+    their own, tasks_* params) are switched in the bar and remembered. Picking a day loads only its
+    panel (the calendar_day frame), or, with the panel closed, opens it. %>
 <% content_for :index_filters do %>
-  <%= form_with url: calendar_page_path, method: :get, class: "calendar-filters", data: { controller: "form", turbo_action: "replace" } do |form| %>
-    <% request.query_parameters.select { |name, value| value.is_a?(String) && (name.in?(%w[view date day]) || name.start_with?("tasks_")) }.each do |name, value| %>
+  <%= ui :filter, param: :person, label: "Person", value: params[:person].presence || "anyone", any: false, search: true, options: calendar_person_options %>
+  <%= ui :filter, param: :client, label: term(:client), value: params[:client].presence || "all", any: false, search: true, options: calendar_client_options %>
+  <%= ui :filter, param: :work, label: term(:work), value: params[:work].presence || "all", any: false, search: true, options: calendar_work_options %>
+  <%= ui :filter, param: :show, label: "Show", value: @schedule.show, any: false, options: calendar_show_options %>
+  <%= form_with url: calendar_page_path, method: :get, class: "calendar-search", data: { controller: "form", turbo_action: "replace" } do %>
+    <% calendar_carried_params(except: "q").each do |name, value| %>
       <%# herb:key name %>
       <input type="hidden" name="<%= name %>" value="<%= value %>">
     <% end %>
-    <%= form.select :person, calendar_person_options, { selected: params[:person].presence || "anyone" }, class: "select--sm", aria: { label: "Person" }, data: { action: "change->form#submit", combobox_filter: "always" } %>
-    <%= form.select :client, calendar_client_options, { selected: params[:client].presence || "all" }, class: "select--sm", aria: { label: term(:client) }, data: { action: "change->form#submit", combobox_filter: "always" } %>
-    <%= form.select :work, calendar_work_options, { selected: params[:work].presence || "all" }, class: "select--sm", aria: { label: term(:work) }, data: { action: "change->form#submit", combobox_filter: "always" } %>
-    <%= form.select :show, calendar_show_options, { selected: @schedule.show }, class: "select--sm", aria: { label: "Show" }, data: { action: "change->form#submit", combobox_filter: "always" } %>
-    <span class="calendar-search">
-      <%= icon_tag "search", class: "calendar-search__icon" %>
-      <input type="search" name="q" id="calendar_search" value="<%= params[:q] %>" class="calendar-search__input" placeholder="Search people, <%= term(:work).downcase %>, <%= term(:task, count: 2).downcase %>…"
-        autocomplete="off" aria-label="Search the calendar" data-turbo-permanent data-1p-ignore="true" data-action="input->form#debouncedSubmit">
-    </span>
+    <%= icon_tag "search", class: "calendar-search__icon" %>
+    <%= ui :input, type: :search, name: "q", id: "calendar_search", value: params[:q], size: :sm, class: "calendar-search__input",
+          placeholder: "Search people, #{term(:work).downcase}, #{term(:task, count: 2).downcase}…", autocomplete: "off", aria: { label: "Search the calendar" },
+          data: { turbo_permanent: true, "1p-ignore": "true", action: "input->form#debouncedSubmit" } %>
   <% end %>
   <% if @schedule.filtered? %>
-    <%= link_to "Clear", calendar_page_path(params.permit(:view, :date).to_h), class: "btn btn--ghost btn--sm" %>
+    <%= ui :button, href: calendar_page_path(params.permit(:view, :date).to_h), variant: :ghost, size: :sm, content: "Clear" %>
   <% end %>
 <% end %>
 <%# Tasks ticked in the drawer: the core's bulk bar takes the toolbar's row, to give them a date or
@@ -43,42 +42,27 @@
   data-action="dragstart->drag-and-drop#dragStart dragover->drag-and-drop#dragOver drop->drag-and-drop#drop dragend->drag-and-drop#dragEnd">
   <div class="calendar-bar">
     <div class="calendar-bar__nav">
-      <%= link_to calendar_link(date: @period.previous.iso8601, day: nil), class: "icon-button", title: "Previous (h)", data: { keys: "h" } do %>
-        <%= icon_tag "arrow-left" %><span class="visually-hidden">Previous</span>
-      <% end %>
-      <%= link_to "Today", calendar_link(date: nil, day: nil), class: "btn btn--secondary btn--sm", title: "Today (t)", data: { keys: "t" } %>
-      <%= link_to calendar_link(date: @period.following.iso8601, day: nil), class: "icon-button", title: "Next (l)", data: { keys: "l" } do %>
-        <%= icon_tag "arrow-right" %><span class="visually-hidden">Next</span>
-      <% end %>
+      <%= ui :button, href: calendar_link(date: @period.previous.iso8601, day: nil), variant: :ghost, size: :icon_sm, title: "Previous (h)",
+            aria: { label: "Previous" }, data: { keys: "h" }, content: icon_tag("arrow-left") %>
+      <%= ui :button, href: calendar_link(date: nil, day: nil), variant: :outline, size: :sm, title: "Today (t)", data: { keys: "t" }, content: "Today" %>
+      <%= ui :button, href: calendar_link(date: @period.following.iso8601, day: nil), variant: :ghost, size: :icon_sm, title: "Next (l)",
+            aria: { label: "Next" }, data: { keys: "l" }, content: icon_tag("arrow-right") %>
       <h2 class="calendar-bar__title"><%= @period.title %></h2>
     </div>
     <div class="calendar-bar__actions">
-      <nav class="tabs tabs--pills" aria-label="View">
-        <% Calendar::Period::VIEWS.each do |view, label| %>
-          <%# herb:key view %>
-          <%= link_to label, calendar_link(view: (view unless view == "month")), class: "tabs__tab", aria: { current: (view == @period.view ? "page" : nil) } %>
-        <% end %>
-      </nav>
-      <%= link_to calendar_link(weekends: @preferences.flipped(:weekends)), class: "pill calendar-toggle", aria: { pressed: @preferences.weekends? },
-            title: (@preferences.weekends? ? "Hide Saturdays and Sundays" : "Show Saturdays and Sundays") do %>
-        <span class="calendar-toggle__box" aria-hidden="true"><%= icon_tag "check" %></span>
-        <span>Weekends</span>
-      <% end %>
-      <%= link_to calendar_link(drawer: @preferences.flipped(:drawer)), class: "pill calendar-toggle calendar-drawer-toggle", aria: { pressed: @preferences.drawer? },
-            title: (@preferences.drawer? ? "Hide the tasks drawer (r)" : "Tasks to put on a day (r)"), data: { keys: "r" } do %>
-        <%= icon_tag "board" %>
-        <span><%= term(:task, count: 2) %></span>
-      <% end %>
-      <%= link_to calendar_link(panel: @preferences.flipped(:panel)), class: "icon-button calendar-panel-toggle", aria: { pressed: @preferences.panel? },
-            title: (@preferences.panel? ? "Hide the day panel (])" : "Show the day panel (])"), data: { keys: "]" } do %>
-        <%= icon_tag "column-right" %><span class="visually-hidden"><%= @preferences.panel? ? "Hide" : "Show" %> the day panel</span>
-      <% end %>
-      <%= link_to calendar_time_offs_path, class: "btn btn--ghost btn--sm" do %>
-        <%= icon_tag "person" %> <span>Time off</span>
-      <% end %>
-      <%= link_to calendar_feed_path, class: "btn btn--ghost btn--sm", title: "Add this calendar to Google Calendar, Outlook or Apple’s" do %>
-        <%= icon_tag "share" %> <span>Subscribe</span>
-      <% end %>
+      <%= ui :toggle_group, value: @period.view, variant: :outline, size: :sm, label: "View", options: calendar_view_options %>
+      <%= ui :button, href: calendar_link(weekends: @preferences.flipped(:weekends)), variant: :outline, size: :sm, class: "calendar-toggle",
+            aria: { pressed: @preferences.weekends?.to_s }, title: (@preferences.weekends? ? "Hide Saturdays and Sundays" : "Show Saturdays and Sundays"),
+            content: safe_join([ tag.span(icon_tag("check"), class: "calendar-toggle__box", aria: { hidden: true }), tag.span("Weekends") ]) %>
+      <%= ui :button, href: calendar_link(drawer: @preferences.flipped(:drawer)), variant: :outline, size: :sm, class: "calendar-toggle",
+            aria: { pressed: @preferences.drawer?.to_s }, title: (@preferences.drawer? ? "Hide the tasks drawer (r)" : "Tasks to put on a day (r)"), data: { keys: "r" },
+            content: safe_join([ icon_tag("board"), tag.span(term(:task, count: 2)) ]) %>
+      <%= ui :button, href: calendar_link(panel: @preferences.flipped(:panel)), variant: :ghost, size: :icon_sm, class: "calendar-toggle",
+            aria: { pressed: @preferences.panel?.to_s, label: "#{@preferences.panel? ? "Hide" : "Show"} the day panel" },
+            title: (@preferences.panel? ? "Hide the day panel (])" : "Show the day panel (])"), data: { keys: "]" }, content: icon_tag("column-right") %>
+      <%= ui :button, href: calendar_time_offs_path, variant: :ghost, size: :sm, content: safe_join([ icon_tag("person"), tag.span("Time off") ]) %>
+      <%= ui :button, href: calendar_feed_path, variant: :ghost, size: :sm, title: "Add this calendar to Google Calendar, Outlook or Apple’s",
+            content: safe_join([ icon_tag("share"), tag.span("Subscribe") ]) %>
     </div>
   </div>
 

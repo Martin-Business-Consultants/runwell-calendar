@@ -1,44 +1,48 @@
 <%# locals: (time_off:, compact: nil) %>
 <%# Adding or changing time off: who (yourself, or anyone if you may manage time off; fixed once it's
     added), from and to, a half day, and a note only they and those who manage time off read.
-    compact: inside the day panel. It submits to the whole page, which opens on the first day out. %>
+    compact: inside the day panel. It submits to the whole page, which opens on the first day out. Each field has an
+    id of its own, so a refused save (a morph of this page, errors added above the fields) pairs each
+    field with itself rather than with its neighbour. %>
 <% saved = time_off.persisted? %>
+<% prefix = compact ? "day_time_off" : "time_off" %>
 <%= form_with model: time_off, url: (saved ? calendar_time_off_path(time_off) : calendar_time_offs_path), method: (saved ? :patch : :post), scope: :time_off,
-      namespace: (compact ? "day_time_off" : "time_off"),
+      namespace: prefix,
       class: class_names("calendar-time-off-form", "calendar-time-off-form--compact": compact), data: { turbo_frame: "_top" } do |form| %>
   <% if time_off.errors.any? %>
-    <div class="alert alert--danger" role="alert"><%= time_off.errors.full_messages.to_sentence %>.</div>
+    <%= ui :alert, variant: :destructive, description: "#{time_off.errors.full_messages.to_sentence}.", role: "alert" %>
   <% end %>
   <% if saved %>
-    <p class="field">
-      <span class="field__label">Who</span>
+    <div class="calendar-time-off-form__who">
+      <span class="calendar-time-off-form__label">Who</span>
       <span class="calendar-out"><%= person_tag time_off.user %> <span><%= time_off.user.display_name %></span></span>
-    </p>
+    </div>
   <% else %>
-    <label class="field">
-      <span class="field__label">Who</span>
-      <%= form.select :user_id, calendar_time_off_people, {}, aria: { label: "Who" } %>
-    </label>
+    <%= form.ui :field, :user_id, label: "Who", id: "#{prefix}_who_field" do %>
+      <%= form.select :user_id, calendar_time_off_people, {} %>
+    <% end %>
   <% end %>
-  <div class="field-row">
-    <label class="field">
-      <span class="field__label">From</span>
+  <div class="calendar-time-off-form__dates">
+    <%= form.ui :field, :starts_on, label: "From", id: "#{prefix}_from_field" do %>
       <%= date_input form, :starts_on, required: true %>
-    </label>
-    <label class="field">
-      <span class="field__label">To</span>
+    <% end %>
+    <%= form.ui :field, :ends_on, label: "To", id: "#{prefix}_to_field" do %>
       <%= date_input form, :ends_on %>
-    </label>
+    <% end %>
   </div>
-  <%= switch_field form, :half_day, label: "Half a day", hint: (compact ? nil : "Only for a single day.") %>
-  <label class="field">
-    <span class="field__label">Note <span class="muted">(optional)</span></span>
+  <% if compact %>
+    <%= form.ui :switch, :half_day, label: "Half a day", id: "#{prefix}_half_day" %>
+  <% else %>
+    <%= form.ui :field, :half_day, label: "Half a day", description: "Only for a single day.", id: "#{prefix}_half_day_field", class: "calendar-switch-field",
+          control: form.ui(:switch, :half_day) %>
+  <% end %>
+  <%= form.ui :field, :note, label: "Note (optional)", id: "#{prefix}_note_field" do %>
     <%= form.text_field :note, maxlength: 200, autocomplete: "off", placeholder: "Seen only by them and whoever manages time off" %>
-  </label>
-  <div class="button-row">
-    <button type="submit" class="btn btn--primary btn--sm"><%= saved ? "Save" : "Add time off" %></button>
+  <% end %>
+  <div class="calendar-actions">
+    <%= ui :button, type: :submit, size: :sm, content: (saved ? "Save" : "Add time off") %>
     <% if saved %>
-      <%= link_to "Cancel", calendar_page_path(date: time_off.starts_on.iso8601, day: time_off.starts_on.iso8601), class: "btn btn--ghost btn--sm", data: { keys: "esc" } %>
+      <%= ui :button, href: calendar_page_path(date: time_off.starts_on.iso8601, day: time_off.starts_on.iso8601), variant: :ghost, size: :sm, data: { keys: "esc" }, content: "Cancel" %>
     <% end %>
   </div>
 <% end %>

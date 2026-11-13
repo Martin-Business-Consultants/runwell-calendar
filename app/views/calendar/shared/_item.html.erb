@@ -62,7 +62,7 @@
     <% end %>
   <% end %>
   <% if item.clash? %>
-    <span class="calendar-item__clash" title="<%= calendar_clash_text(item.clash) %>"><%= icon_tag "bell-alert" %><span class="visually-hidden"><%= calendar_clash_text(item.clash) %></span></span>
+    <span class="calendar-item__clash" title="<%= calendar_clash_text(item.clash) %>"><%= icon_tag "bell-alert" %><span class="ui-sr-only"><%= calendar_clash_text(item.clash) %></span></span>
   <% end %>
   <% if (!compact || avatars) && item.people.any? && !item.time_off? && !item.busy? %>
     <span class="calendar-item__people">

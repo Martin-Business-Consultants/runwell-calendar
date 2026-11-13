@@ -10,8 +10,10 @@
     <div class="calendar-timeline__track">
       <% timeline.weeks.each_with_index do |week, index| %>
         <%# herb:key week.iso8601 %>
-        <span class="<%= class_names("calendar-timeline__week", "tl-at-#{index + 1}", "calendar-timeline__week--month": index.zero? || week.month != timeline.weeks[index - 1].month) %>">
-          <%= index.zero? || week.month != timeline.weeks[index - 1].month ? l(week, format: "%b") : "" %>
+        <%# A month is named over its first week; the first column only when the next is in it too, so two names never crowd. %>
+        <% named = index.zero? ? timeline.weeks[1]&.month == week.month : week.month != timeline.weeks[index - 1].month %>
+        <span class="<%= class_names("calendar-timeline__week", "tl-at-#{index + 1}", "calendar-timeline__week--month": named) %>">
+          <%= named ? l(week, format: "%b") : "" %>
         </span>
       <% end %>
     </div>
@@ -21,7 +23,7 @@
     <div class="calendar-timeline__row">
       <div class="calendar-timeline__label">
         <%= link_to row.work.title, work_path(row.work), class: "calendar-timeline__work" %>
-        <span class="calendar-timeline__client muted small"><%= row.work.client&.name %></span>
+        <span class="calendar-timeline__client"><%= row.work.client&.name %></span>
       </div>
       <div class="calendar-timeline__track">
         <% if today %>
@@ -42,7 +44,7 @@
     </div>
   <% end %>
   <% if timeline.rows.none? %>
-    <%= render "layouts/shared/empty", text: "No open #{term(:work).downcase} in these months." %>
+    <%= ui :empty, description: "No open #{term(:work).downcase} in these months." %>
   <% end %>
-  <p class="muted small calendar-timeline__hint">Bars run from when each <%= term(:work).downcase %> started to its last date field (add a Date field such as “Launch” in Settings › Fields).</p>
+  <p class="calendar-timeline__hint">Bars run from when each <%= term(:work).downcase %> started to its last date field (add a Date field such as “Launch” in Settings › Fields).</p>
 </div>
